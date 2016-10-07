@@ -42,7 +42,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                      GMF_WANT_ALL_DISCONNECTS | G_GMF_VARIABLE_FPS)
 
 // the "gameversion" client command will print this plus compile date
-#define GAMEVERSION "OpenFFA"
+#define GAMEVERSION "Strogg Empire"
 
 // protocol bytes that can be directly added to messages
 #define svc_muzzleflash     1
@@ -904,10 +904,11 @@ void G_ResetLevel(void);
 //============================================================================
 
 
-#define PCS_FRAGS   0
-#define PCS_DELTA   1
-#define PCS_RANK    2
-#define PCS_TOTAL   4
+#define PCS_FRAGS       0
+#define PCS_DELTA       1
+#define PCS_RANK        2
+#define PCS_ANNOUNCER   3
+#define PCS_TOTAL       4
 
 #define CS_OBSERVE          (CS_GENERAL + 1)
 #define CS_TIME             (CS_GENERAL + 2)
@@ -1397,3 +1398,6 @@ qboolean G_OpenDatabase(void);
 void G_CloseDatabase(void);
 #endif
 
+void G_Feedback_Init();
+void G_Feedback_ClientHit(edict_t *attacker, edict_t *victim, int damage_given);
+void G_Feedback_ClientKilled(edict_t *attacker, edict_t *victim);

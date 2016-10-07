@@ -63,17 +63,7 @@ void SP_info_player_intermission(void)
 
 void player_pain(edict_t *self, edict_t *other, float kick, int damage)
 {
-    if (self->client && other->client && other != self) {
-        if (damage < 25) {
-            gi.sound(other, CHAN_FEEDBACK, gi.soundindex("misc/hit_3.wav"), 1.f, ATTN_STATIC, 0);
-        } else if (damage < 50) {
-            gi.sound(other, CHAN_FEEDBACK, gi.soundindex("misc/hit_2.wav"), 1.f, ATTN_STATIC, 0);
-        } else if (damage < 75) {
-            gi.sound(other, CHAN_FEEDBACK, gi.soundindex("misc/hit_1.wav"), 1.f, ATTN_STATIC, 0);
-        } else {
-            gi.sound(other, CHAN_FEEDBACK, gi.soundindex("misc/hit_0.wav"), 1.f, ATTN_STATIC, 0);
-        }
-    }
+    G_Feedback_ClientHit(other, self, damage);
 }
 
 
@@ -624,9 +614,7 @@ void player_die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
             self->client->inventory[n] = 0;
         }
 
-        if (self->client && attacker->client && attacker != self) {
-            gi.sound(attacker, CHAN_FEEDBACK, gi.soundindex("misc/kill.wav"), 1.f, ATTN_STATIC, 0);
-        }
+        G_Feedback_ClientKilled(attacker, self);
     }
 
     // remove powerups

@@ -1,4 +1,4 @@
-### OpenFFA Makefile ###
+### Strogg Empire Makefile ###
 
 -include .config
 
@@ -29,12 +29,20 @@ ifdef CONFIG_WINDOWS
 else
     CFLAGS += -fPIC -fvisibility=hidden
     LDFLAGS += -Wl,--no-undefined
+
+    ifeq ($(CPU), i386)
+    	CFLAGS += -m32
+    endif
+
+    ifeq ($(CPU), x86_64)
+    	CFLAGS += -m64
+    endif
 endif
 
-CFLAGS += -DOPENFFA_VERSION='"$(VER)"' -DOPENFFA_REVISION=$(REV)
-RCFLAGS += -DOPENFFA_VERSION='\"$(VER)\"' -DOPENFFA_REVISION=$(REV)
+CFLAGS += -DSTROGG_EMPIRE_VERSION='"$(VER)"' -DSTROGG_EMPIRE_REVISION=$(REV)
+RCFLAGS += -DSTROGG_EMPIRE_VERSION='\"$(VER)\"' -DSTROGG_EMPIRE_REVISION=$(REV)
 
-OBJS := g_bans.o g_chase.o g_cmds.o g_combat.o g_func.o g_items.o g_main.o \
+OBJS := g_bans.o g_chase.o g_cmds.o g_combat.o g_feedback.o g_func.o g_items.o g_main.o \
 g_misc.o g_phys.o g_spawn.o g_svcmds.o g_target.o g_trigger.o g_utils.o \
 g_vote.o g_weapon.o p_client.o p_hud.o p_menu.o p_view.o p_weapon.o q_shared.o
 
@@ -51,7 +59,7 @@ ifdef CONFIG_SQLITE
 endif
 
 ifdef CONFIG_WINDOWS
-    OBJS += openffa.o
+    OBJS += strogg-empire.o
     TARGET := game$(CPU).dll
 else
     LIBS += -lm

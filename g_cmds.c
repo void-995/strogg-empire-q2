@@ -1329,7 +1329,7 @@ static void Cmd_AdminCommands_f(edict_t *ent)
 static void Cmd_Commands_f(edict_t *ent)
 {
     gi.cprintf(ent, PRINT_HIGH,
-               "menu       Show OpenFFA menu\n"
+               "menu       Show Strogg Empire FFA menu\n"
                "join       Enter the game\n"
                "observe    Leave the game\n"
                "chase      Enter chasecam mode\n"
@@ -1424,7 +1424,7 @@ static void select_test(edict_t *ent)
 }
 
 static const pmenu_entry_t main_menu[MAX_MENU_ENTRIES] = {
-    { "OpenFFA - Main", PMENU_ALIGN_CENTER },
+    { "Strogg Empire FFA - Main", PMENU_ALIGN_CENTER },
     { NULL },
     { NULL },
     { NULL, PMENU_ALIGN_LEFT, select_test },
@@ -1442,7 +1442,7 @@ static const pmenu_entry_t main_menu[MAX_MENU_ENTRIES] = {
     { NULL },
     { "Use [ and ] to move cursor", PMENU_ALIGN_CENTER },
     { "Press Enter to select", PMENU_ALIGN_CENTER },
-    { "*" OPENFFA_VERSION, PMENU_ALIGN_RIGHT }
+    { "*" STROGG_EMPIRE_VERSION, PMENU_ALIGN_RIGHT }
 };
 
 void Cmd_Menu_f(edict_t *ent)
