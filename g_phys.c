@@ -91,7 +91,7 @@ SV_RunThink
 Runs thinking code for this frame if necessary
 =============
 */
-static qboolean SV_RunThink(edict_t *ent)
+qboolean SV_RunThink(edict_t *ent)
 {
     int     thinkframe;
 

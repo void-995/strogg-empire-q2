@@ -20,7 +20,7 @@ STRIP ?= strip
 RM ?= rm -f
 
 CFLAGS ?= -O2 -fno-strict-aliasing -g -Wall -MMD $(INCLUDES)
-LDFLAGS ?= -shared
+LDFLAGS ?= -shared -static-libstdc++ -static-libgcc
 LIBS ?=
 
 ifdef CONFIG_WINDOWS

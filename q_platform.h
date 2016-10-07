@@ -98,7 +98,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define q_offsetof(t, m)    ((size_t)&((t *)0)->m)
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(_WIN64)
 #define q_gameabi           __attribute__((callee_pop_aggregate_return(0)))
 #else
 #define q_gameabi

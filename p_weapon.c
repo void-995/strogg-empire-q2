@@ -321,7 +321,7 @@ static void Weapon_Generic(edict_t *ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE
             }
         }
 
-        ent->client->weaponframe++;
+        ent->client->weaponframe = FRAME_DEACTIVATE_LAST;
         return;
     }
 
@@ -332,7 +332,7 @@ static void Weapon_Generic(edict_t *ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE
             return;
         }
 
-        ent->client->weaponframe++;
+        ent->client->weaponframe = FRAME_ACTIVATE_LAST;
         return;
     }
 

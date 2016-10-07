@@ -1283,6 +1283,8 @@ struct edict_s {
     int         deadflag;
     qboolean    show_hostile;
 
+    int         max_health_absolute;
+
     char        *map;           // target_changelevel
 
     int         viewheight;     // height above origin where eyesight is determined

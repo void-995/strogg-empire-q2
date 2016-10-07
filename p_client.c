@@ -63,7 +63,17 @@ void SP_info_player_intermission(void)
 
 void player_pain(edict_t *self, edict_t *other, float kick, int damage)
 {
-    // player pain is handled at the end of the frame in P_DamageFeedback
+    if (self->client && other->client && other != self) {
+        if (damage < 25) {
+            gi.sound(other, CHAN_FEEDBACK, gi.soundindex("misc/hit_3.wav"), 1.f, ATTN_STATIC, 0);
+        } else if (damage < 50) {
+            gi.sound(other, CHAN_FEEDBACK, gi.soundindex("misc/hit_2.wav"), 1.f, ATTN_STATIC, 0);
+        } else if (damage < 75) {
+            gi.sound(other, CHAN_FEEDBACK, gi.soundindex("misc/hit_1.wav"), 1.f, ATTN_STATIC, 0);
+        } else {
+            gi.sound(other, CHAN_FEEDBACK, gi.soundindex("misc/hit_0.wav"), 1.f, ATTN_STATIC, 0);
+        }
+    }
 }
 
 
@@ -613,6 +623,10 @@ void player_die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
         for (n = 0; n < MAX_ITEMS; n++) {
             self->client->inventory[n] = 0;
         }
+
+        if (self->client && attacker->client && attacker != self) {
+            gi.sound(attacker, CHAN_FEEDBACK, gi.soundindex("misc/kill.wav"), 1.f, ATTN_STATIC, 0);
+        }
     }
 
     // remove powerups
@@ -1110,6 +1124,16 @@ void G_SetDeltaAngles(edict_t *ent, vec3_t angles)
     }
 }
 
+void PlayerThink(edict_t *self)
+{
+    if (!self->deadflag) {
+        if (self->health > self->max_health) {
+            self->health -= 1;
+        }
+    }
+
+    self->nextthink = level.framenum + 1 * HZ;
+}
 
 /*
 ===========
@@ -1170,8 +1194,9 @@ void PutClientInServer(edict_t *ent)
     client->max_cells       = 200;
     client->max_slugs       = 50;
 
-    ent->health             = 100;
-    ent->max_health         = 100;
+    ent->health                 = 125;
+    ent->max_health             = 100;
+    ent->max_health_absolute    = 200;
 
     // clear entity values
     ent->groundentity = NULL;
@@ -1193,6 +1218,8 @@ void PutClientInServer(edict_t *ent)
     ent->watertype = 0;
     ent->flags &= ~(FL_NO_KNOCKBACK | FL_MEGAHEALTH);
     ent->svflags &= ~(SVF_DEADMONSTER | SVF_NOCLIENT);
+    ent->nextthink = level.framenum + 5 * HZ;
+    ent->think = PlayerThink;
 
     VectorSet(ent->mins, -16, -16, -24);
     VectorSet(ent->maxs, 16, 16, 32);
@@ -1878,6 +1905,7 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
 
 }
 
+qboolean SV_RunThink(edict_t *ent);
 
 /*
 ==============
@@ -1893,6 +1921,8 @@ void ClientBeginServerFrame(edict_t *ent)
 
     if (level.intermission_framenum)
         return;
+
+    SV_RunThink(ent);
 
     client = ent->client;
 

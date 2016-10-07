@@ -478,7 +478,6 @@ void MegaHealth_think(edict_t *self)
 {
     if (self->owner->health > self->owner->max_health) {
         self->nextthink = level.framenum + 1 * HZ;
-        self->owner->health -= 1;
         return;
     }
 
@@ -491,15 +490,26 @@ void MegaHealth_think(edict_t *self)
 
 qboolean Pickup_Health(edict_t *ent, edict_t *other)
 {
-    if (!(ent->style & HEALTH_IGNORE_MAX))
-        if (other->health >= other->max_health)
+    if (!(ent->style & HEALTH_IGNORE_MAX)) {
+        if (other->health >= other->max_health) {
             return qfalse;
+        }
+    } else {
+        if (other->health >= other->max_health_absolute) {
+            return qfalse;
+        }
+    }
 
     other->health += ent->count;
 
     if (!(ent->style & HEALTH_IGNORE_MAX)) {
-        if (other->health > other->max_health)
+        if (other->health > other->max_health) {
             other->health = other->max_health;
+        }
+    } else {
+        if (other->health > other->max_health_absolute) {
+            other->health = other->max_health_absolute;
+        }
     }
 
     if (ent->style & HEALTH_TIMED) {
@@ -510,10 +520,13 @@ qboolean Pickup_Health(edict_t *ent, edict_t *other)
         ent->svflags |= SVF_NOCLIENT;
         ent->solid = SOLID_NOT;
         other->flags |= FL_MEGAHEALTH;
+        other->nextthink = level.framenum + 5 * HZ;
     } else {
         if (!(ent->spawnflags & DROPPED_ITEM))
             SetRespawn(ent, 30);
-    }
+
+        other->nextthink = level.framenum + 2 * HZ;
+    }    
 
     return qtrue;
 }

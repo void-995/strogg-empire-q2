@@ -927,6 +927,12 @@ void SP_worldspawn(edict_t *ent)
 
     gi.soundindex("items/respawn1.wav");
 
+    gi.soundindex("misc/hit_3.wav");
+    gi.soundindex("misc/hit_2.wav");
+    gi.soundindex("misc/hit_1.wav");
+    gi.soundindex("misc/hit_0.wav");
+    gi.soundindex("misc/kill.wav");
+
     // sexed sounds
     level.sounds.death[0] = gi.soundindex("*death1.wav");
     level.sounds.death[1] = gi.soundindex("*death2.wav");
