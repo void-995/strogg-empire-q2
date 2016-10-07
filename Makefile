@@ -32,10 +32,12 @@ else
 
     ifeq ($(CPU), i386)
     	CFLAGS += -m32
+    	LDFLAGS += -m32
     endif
 
     ifeq ($(CPU), x86_64)
     	CFLAGS += -m64
+    	LDFLAGS += -m64
     endif
 endif
 
