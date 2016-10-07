@@ -846,6 +846,7 @@ void SP_worldspawn(edict_t *ent)
     ent->s.modelindex = 1;      // world model is always index 1
 
     //---------------
+    G_Feedback_Init();
 
     // reserve some spots for dead player bodies for coop / deathmatch
     InitBodyQue();
@@ -926,12 +927,6 @@ void SP_worldspawn(edict_t *ent)
     level.sounds.udeath = gi.soundindex("misc/udeath.wav");
 
     gi.soundindex("items/respawn1.wav");
-
-    gi.soundindex("misc/hit_3.wav");
-    gi.soundindex("misc/hit_2.wav");
-    gi.soundindex("misc/hit_1.wav");
-    gi.soundindex("misc/hit_0.wav");
-    gi.soundindex("misc/kill.wav");
 
     // sexed sounds
     level.sounds.death[0] = gi.soundindex("*death1.wav");

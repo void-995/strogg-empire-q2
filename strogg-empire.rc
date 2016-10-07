@@ -17,8 +17,8 @@
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 VS_VERSION_INFO VERSIONINFO
-    FILEVERSION     OPENFFA_REVISION,0,0,0
-    PRODUCTVERSION  OPENFFA_REVISION,0,0,0
+    FILEVERSION     STROGG_EMPIRE_REVISION,0,0,0
+    PRODUCTVERSION  STROGG_EMPIRE_REVISION,0,0,0
     FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
     FILEFLAGS       VER_FILEFLAGS
     FILEOS          VOS_NT_WINDOWS32
@@ -29,15 +29,15 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "Comments", "http://skuller.net/openffa/"
-            VALUE "CompanyName", "skuller.net"
-            VALUE "FileDescription", "Free-for-all deathmatch mod for Quake 2"
+            VALUE "Comments", ""
+            VALUE "CompanyName", "Aleksandr Palamar"
+            VALUE "FileDescription", "Strogg Empire mod for Quake 2"
             VALUE "OriginalFilename", VER_ORIGINALFILENAME_STR
-            VALUE "FileVersion", OPENFFA_VERSION
-            VALUE "InternalName", "openffa"
-            VALUE "LegalCopyright", "Copyright © 2013 skuller.net"
-            VALUE "ProductName", "OpenFFA"
-            VALUE "ProductVersion", OPENFFA_VERSION
+            VALUE "FileVersion", STROGG_EMPIRE_VERSION
+            VALUE "InternalName", "strogg-empire"
+            VALUE "LegalCopyright", "Copyright © 2016 Aleksandr Palamar"
+            VALUE "ProductName", "Strogg Empire"
+            VALUE "ProductVersion", STROGG_EMPIRE_VERSION
         END
     END
     BLOCK "VarFileInfo"

@@ -990,8 +990,8 @@ static void G_Init(void)
     gi.cvar("time_remaining", "", CVAR_SERVERINFO);
     gi.cvar_set("time_remaining", "");
 
-    gi.cvar("revision", va("%d", OPENFFA_REVISION), CVAR_SERVERINFO);
-    gi.cvar_set("revision", va("%d", OPENFFA_REVISION));
+    gi.cvar("revision", va("%d", STROGG_EMPIRE_REVISION), CVAR_SERVERINFO);
+    gi.cvar_set("revision", va("%d", STROGG_EMPIRE_REVISION));
 
     g_select_empty = gi.cvar("g_select_empty", "0", CVAR_ARCHIVE);
     g_idle_time = gi.cvar("g_idle_time", "0", 0);
