@@ -733,7 +733,11 @@ static void Cmd_Say_f(edict_t *ent, chat_t chat)
     // don't flood protect team chat to self
     if (chat == CHAT_TEAM && (int)g_team_chat->value == 0 && PLAYER_SPAWNED(ent)) {
         build_chat(cl->pers.netname, chat, start, text);
-        gi.cprintf(ent, PRINT_CHAT, "%s\n", text);
+
+        if ((ent->svflags & SVF_MONSTER) == 0) {
+            gi.cprintf(ent, PRINT_CHAT, "%s\n", text);
+        }
+
         return;
     }
 
@@ -775,7 +779,10 @@ static void Cmd_Say_f(edict_t *ent, chat_t chat)
         if (chat == CHAT_TEAM && PLAYER_SPAWNED(ent) != PLAYER_SPAWNED(other)) {
             continue;
         }
-        gi.cprintf(other, PRINT_CHAT, "%s\n", text);
+
+        if ((other->svflags & SVF_MONSTER) == 0) {
+            gi.cprintf(other, PRINT_CHAT, "%s\n", text);
+        }
     }
 }
 
@@ -1499,10 +1506,14 @@ static void Cmd_OldScore_f(edict_t *ent)
 
     ent->client->layout = LAYOUT_OLDSCORES;
 
-    gi.WriteByte(svc_layout);
-    gi.WriteString(game.oldscores);
-    gi.unicast(ent, qtrue);
+    if ((ent->svflags & SVF_MONSTER) == 0) {
+        gi.WriteByte(svc_layout);
+        gi.WriteString(game.oldscores);
+        gi.unicast(ent, qtrue);
+    }
 }
+
+void Cmd_Addbot_f(edict_t *ent);
 
 /*
 =================
@@ -1567,6 +1578,10 @@ void ClientCommand(edict_t *ent)
         }
     }
 
+    if (Q_stricmp(cmd, "addbot") == 0) {
+        Cmd_Addbot_f(ent);
+        return;
+    }
     if (Q_stricmp(cmd, "say") == 0) {
         Cmd_Say_f(ent, CHAT_ALL);
         return;

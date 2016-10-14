@@ -277,7 +277,9 @@ qboolean GetChaseTarget(edict_t *ent, chase_mode_t mode)
     }
 
 notfound:
-    gi.cprintf(ent, PRINT_HIGH, "No players to chase.\n");
+    if ((ent->svflags & SVF_MONSTER) == 0) {
+        gi.cprintf(ent, PRINT_HIGH, "No players to chase.\n");
+    }
     return qfalse;
 
 found:

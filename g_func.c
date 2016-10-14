@@ -1139,7 +1139,10 @@ static void door_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_
         return;
     self->touch_debounce_framenum = level.framenum + 5 * HZ;
 
-    gi.centerprintf(other, "%s", self->message);
+    if ((other->svflags & SVF_MONSTER) == 0) {
+        gi.centerprintf(other, "%s", self->message);
+    }
+    
     gi.sound(other, CHAN_AUTO, gi.soundindex("misc/talk1.wav"), 1, ATTN_NORM, 0);
 }
 

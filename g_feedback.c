@@ -115,11 +115,15 @@ void G_Feedback_ClientKilled(edict_t *attacker, edict_t *victim)
 			Q_snprintf(attacker_message, MAX_STRING_CHARS, "You fragged %s\n%s place with %d", victim->client->pers.netname, G_Feedback_PlaceString(attacker_rank + 1), attacker->client->resp.score);
 			Q_snprintf(victim_message, MAX_STRING_CHARS, "Fragged by %s\n", attacker->client->pers.netname);
 
-			gi.centerprintf(attacker, "%s", attacker_message);
+			if ((attacker->svflags & SVF_MONSTER) == 0) {
+				gi.centerprintf(attacker, "%s", attacker_message);
+			}
 		}
 
 		Q_snprintf(victim_message, MAX_STRING_CHARS, "%s%s place with %d", victim_message, G_Feedback_PlaceString(victim_rank + 1), victim->client->resp.score);
 
-		gi.centerprintf(victim, "%s", victim_message);
+		if ((victim->svflags & SVF_MONSTER) == 0) {
+			gi.centerprintf(victim, "%s", victim_message);
+		}
 	}
 }

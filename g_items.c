@@ -462,9 +462,12 @@ void Drop_Ammo(edict_t *ent, gitem_t *item)
         ent->client->weapon->tag == AMMO_GRENADES &&
         item->tag == AMMO_GRENADES &&
         ent->client->inventory[index] - dropped->count <= 0) {
-        gi.cprintf(ent, PRINT_HIGH, "Can't drop current weapon\n");
-        G_FreeEdict(dropped);
-        return;
+            if ((ent->svflags & SVF_MONSTER) == 0) {
+                gi.cprintf(ent, PRINT_HIGH, "Can't drop current weapon\n");
+            }
+
+            G_FreeEdict(dropped);
+            return;
     }
 
     ent->client->inventory[index] -= dropped->count;
@@ -525,7 +528,7 @@ qboolean Pickup_Health(edict_t *ent, edict_t *other)
         if (!(ent->spawnflags & DROPPED_ITEM))
             SetRespawn(ent, 30);
 
-        other->nextthink = level.framenum + 2 * HZ;
+        other->nextthink = level.framenum + 1.5 * HZ;
     }    
 
     return qtrue;
@@ -647,7 +650,10 @@ void Use_PowerArmor(edict_t *ent, gitem_t *item)
         gi.sound(ent, CHAN_AUTO, gi.soundindex("misc/power2.wav"), 1, ATTN_NORM, 0);
     } else {
         if (!ent->client->inventory[ITEM_CELLS]) {
-            gi.cprintf(ent, PRINT_HIGH, "No cells for power armor.\n");
+            if ((ent->svflags & SVF_MONSTER) == 0) {
+                gi.cprintf(ent, PRINT_HIGH, "No cells for power armor.\n");
+            }
+            
             return;
         }
         ent->flags |= FL_POWER_ARMOR;

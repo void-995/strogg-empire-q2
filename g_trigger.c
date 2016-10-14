@@ -211,7 +211,10 @@ static void trigger_key_use(edict_t *self, edict_t *other, edict_t *activator)
         if (level.framenum < self->touch_debounce_framenum)
             return;
         self->touch_debounce_framenum = level.framenum + 5.0 * HZ;
-        gi.centerprintf(activator, "You need the %s", self->item->pickup_name);
+        if ((activator->svflags & SVF_MONSTER) == 0) {
+            gi.centerprintf(activator, "You need the %s", self->item->pickup_name);
+        }
+
         gi.sound(activator, CHAN_AUTO, gi.soundindex("misc/keytry.wav"), 1, ATTN_NORM, 0);
         return;
     }
@@ -275,14 +278,20 @@ static void trigger_counter_use(edict_t *self, edict_t *other, edict_t *activato
 
     if (self->count) {
         if (!(self->spawnflags & 1)) {
-            gi.centerprintf(activator, "%i more to go...", self->count);
+            if ((activator->svflags & SVF_MONSTER) == 0) {
+                gi.centerprintf(activator, "%i more to go...", self->count);
+            }
+
             gi.sound(activator, CHAN_AUTO, gi.soundindex("misc/talk1.wav"), 1, ATTN_NORM, 0);
         }
         return;
     }
 
     if (!(self->spawnflags & 1)) {
-        gi.centerprintf(activator, "Sequence completed!");
+        if ((activator->svflags & SVF_MONSTER) == 0) {
+            gi.centerprintf(activator, "Sequence completed!");
+        }
+
         gi.sound(activator, CHAN_AUTO, gi.soundindex("misc/talk1.wav"), 1, ATTN_NORM, 0);
     }
     self->activator = activator;

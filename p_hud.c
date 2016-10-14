@@ -275,9 +275,11 @@ void DeathmatchScoreboardMessage(edict_t *ent, qboolean reliable)
 
     BuildDeathmatchScoreboard(buffer, ent->client);
 
-    gi.WriteByte(svc_layout);
-    gi.WriteString(buffer);
-    gi.unicast(ent, reliable);
+    if ((ent->svflags & SVF_MONSTER) == 0) {
+        gi.WriteByte(svc_layout);
+        gi.WriteString(buffer);
+        gi.unicast(ent, reliable);
+    }
 }
 
 
@@ -414,10 +416,12 @@ void G_PrivateString(edict_t *ent, int index, const char *string)
     // save new string
     Q_strlcpy(ent->client->level.strings[index], string, MAX_NETNAME);
 
-    gi.WriteByte(svc_configstring);
-    gi.WriteShort(CS_PRIVATE + index);
-    gi.WriteString(string);
-    gi.unicast(ent, qtrue);
+    if ((ent->svflags & SVF_MONSTER) == 0) {
+        gi.WriteByte(svc_configstring);
+        gi.WriteShort(CS_PRIVATE + index);
+        gi.WriteString(string);
+        gi.unicast(ent, qtrue);
+    }
 
     // send it to chasecam clients too
     if (ent->client->chase_target) {

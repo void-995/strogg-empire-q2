@@ -125,8 +125,10 @@ void PMenu_Update(edict_t *ent)
     //}
 
     // been a second or more since last update, update now
-    PMenu_Write(ent);
-    gi.unicast(ent, qtrue);
+    if ((ent->svflags & SVF_MONSTER) == 0) {
+        PMenu_Write(ent);
+        gi.unicast(ent, qtrue);
+    }
     //ent->client->menu_framenum = level.framenum;
     ent->client->menu_dirty = qfalse;
 }

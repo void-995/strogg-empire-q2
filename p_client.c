@@ -308,7 +308,10 @@ static void ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacker)
                 name = buffer;
                 level = PRINT_HIGH;
             }
-            gi.cprintf(ent, level, "%s %s.\n", name, message);
+
+            if ((ent->svflags & SVF_MONSTER) == 0) {
+                gi.cprintf(ent, level, "%s %s.\n", name, message);
+            }
         }
         if ((int)dedicated->value) {
             gi.dprintf("%s %s.\n", self->client->pers.netname, message);
@@ -414,8 +417,10 @@ static void ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacker)
                     name2 = buffer;
                     level = PRINT_HIGH;
                 }
-                gi.cprintf(ent, level, "%s %s %s%s\n",
-                           name, message, name2, message2);
+                
+                if ((ent->svflags & SVF_MONSTER) == 0) {
+                    gi.cprintf(ent, level, "%s %s %s%s\n", name, message, name2, message2);
+                }
             }
             if ((int)dedicated->value) {
                 gi.dprintf("%s %s %s%s\n", self->client->pers.netname,
@@ -1206,7 +1211,7 @@ void PutClientInServer(edict_t *ent)
     ent->watertype = 0;
     ent->flags &= ~(FL_NO_KNOCKBACK | FL_MEGAHEALTH);
     ent->svflags &= ~(SVF_DEADMONSTER | SVF_NOCLIENT);
-    ent->nextthink = level.framenum + 5 * HZ;
+    ent->nextthink = level.framenum + 1.5 * HZ;
     ent->think = PlayerThink;
 
     VectorSet(ent->mins, -16, -16, -24);
@@ -1336,8 +1341,10 @@ void ClientBegin(edict_t *ent)
     } else if (timelimit->value > 0) {
         int remaining = timelimit->value * 60 - level.time;
 
-        G_WriteTime(remaining);
-        gi.unicast(ent, qtrue);
+        if ((ent->svflags & SVF_MONSTER) == 0) {
+            G_WriteTime(remaining);
+            gi.unicast(ent, qtrue);
+        }
     }
 
     if (ent->client->level.first_time) {
@@ -1347,10 +1354,12 @@ void ClientBegin(edict_t *ent)
         level.players_in++;
 
         // send login effect only to this client
-        gi.WriteByte(svc_muzzleflash);
-        gi.WriteShort(ent - g_edicts);
-        gi.WriteByte(MZ_LOGIN);
-        gi.unicast(ent, qfalse);
+        if ((ent->svflags & SVF_MONSTER) == 0) {
+            gi.WriteByte(svc_muzzleflash);
+            gi.WriteShort(ent - g_edicts);
+            gi.WriteByte(MZ_LOGIN);
+            gi.unicast(ent, qfalse);
+        }
 
         ent->client->level.first_time = qfalse;
     }

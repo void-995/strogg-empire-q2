@@ -634,9 +634,11 @@ void G_StartSound(int index)
 
 void G_StuffText(edict_t *ent, const char *text)
 {
-    gi.WriteByte(svc_stufftext);
-    gi.WriteString(text);
-    gi.unicast(ent, qtrue);
+    if ((ent->svflags & SVF_MONSTER) == 0) {
+        gi.WriteByte(svc_stufftext);
+        gi.WriteString(text);
+        gi.unicast(ent, qtrue);
+    }
 }
 
 static void G_SetTimeVar(int remaining)
@@ -789,6 +791,8 @@ void G_ExitLevel(void)
     level.intermission_exit = level.framenum;
 }
 
+void G_BotsRunFrame(void);
+
 /*
 ================
 G_RunFrame
@@ -888,6 +892,8 @@ void G_RunFrame(void)
             G_UpdateVote();
         }
     }
+
+    G_BotsRunFrame();
 
     // build the playerstate_t structures for all players
     ClientEndServerFrames();

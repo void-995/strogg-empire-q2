@@ -187,12 +187,14 @@ void G_UseTargets(edict_t *ent, edict_t *activator)
         return;
     }
 
-
 //
 // print the message
 //
     if ((ent->message) && !(activator->svflags & SVF_MONSTER)) {
-        gi.centerprintf(activator, "%s", ent->message);
+        if ((activator->svflags & SVF_MONSTER) == 0) {
+            gi.centerprintf(activator, "%s", ent->message);
+        }
+
         if (ent->noise_index)
             gi.sound(activator, CHAN_AUTO, ent->noise_index, 1, ATTN_NORM, 0);
         else

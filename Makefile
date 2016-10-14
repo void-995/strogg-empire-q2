@@ -26,25 +26,30 @@ LIBS ?=
 ifdef CONFIG_WINDOWS
     LDFLAGS += -mconsole
     LDFLAGS += -Wl,--nxcompat,--dynamicbase
+
+    ifeq ($(CPU), x86)
+        CFLAGS += -m32
+        LDFLAGS += -m32
+    endif   
 else
     CFLAGS += -fPIC -fvisibility=hidden
     LDFLAGS += -Wl,--no-undefined
 
     ifeq ($(CPU), i386)
-    	CFLAGS += -m32
-    	LDFLAGS += -m32
+        CFLAGS += -m32
+        LDFLAGS += -m32
     endif
+endif
 
-    ifeq ($(CPU), x86_64)
-    	CFLAGS += -m64
-    	LDFLAGS += -m64
-    endif
+ifeq ($(CPU), x86_64)
+    CFLAGS += -m64
+    LDFLAGS += -m64
 endif
 
 CFLAGS += -DSTROGG_EMPIRE_VERSION='"$(VER)"' -DSTROGG_EMPIRE_REVISION=$(REV)
 RCFLAGS += -DSTROGG_EMPIRE_VERSION='\"$(VER)\"' -DSTROGG_EMPIRE_REVISION=$(REV)
 
-OBJS := g_bans.o g_chase.o g_cmds.o g_combat.o g_feedback.o g_func.o g_items.o g_main.o \
+OBJS := g_bans.o g_bot.o g_chase.o g_cmds.o g_combat.o g_feedback.o g_func.o g_items.o g_main.o \
 g_misc.o g_phys.o g_spawn.o g_svcmds.o g_target.o g_trigger.o g_utils.o \
 g_vote.o g_weapon.o p_client.o p_hud.o p_menu.o p_view.o p_weapon.o q_shared.o
 
@@ -86,22 +91,21 @@ endif
 -include $(OBJS:.o=.d)
 
 %.o: %.c
-	$(E) [CC] $@
-	$(Q)$(CC) -c $(CFLAGS) -o $@ $<
+    $(E) [CC] $@
+    $(Q)$(CC) -c $(CFLAGS) -o $@ $<
 
 %.o: %.rc
-	$(E) [RC] $@
-	$(Q)$(WINDRES) $(RCFLAGS) -o $@ $<
+    $(E) [RC] $@
+    $(Q)$(WINDRES) $(RCFLAGS) -o $@ $<
 
 $(TARGET): $(OBJS)
-	$(E) [LD] $@
-	$(Q)$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
+    $(E) [LD] $@
+    $(Q)$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 clean:
-	$(E) [CLEAN]
-	$(Q)$(RM) *.o *.d $(TARGET)
+    $(E) [CLEAN]
+    $(Q)$(RM) *.o *.d $(TARGET)
 
 strip: $(TARGET)
-	$(E) [STRIP]
-	$(Q)$(STRIP) $(TARGET)
-
+    $(E) [STRIP]
+    $(Q)$(STRIP) $(TARGET)
