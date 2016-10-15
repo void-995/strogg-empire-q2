@@ -31,7 +31,7 @@ BEGIN
         BEGIN
             VALUE "Comments", ""
             VALUE "CompanyName", "Aleksandr Palamar"
-            VALUE "FileDescription", "Strogg Empire mod for Quake 2"
+            VALUE "FileDescription", "Strogg Empire Mod For Quake 2"
             VALUE "OriginalFilename", VER_ORIGINALFILENAME_STR
             VALUE "FileVersion", STROGG_EMPIRE_VERSION
             VALUE "InternalName", "strogg-empire"
@@ -45,4 +45,3 @@ BEGIN
         VALUE "Translation", 0x409, 0x4B0
     END
 END
-

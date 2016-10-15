@@ -91,21 +91,21 @@ endif
 -include $(OBJS:.o=.d)
 
 %.o: %.c
-    $(E) [CC] $@
-    $(Q)$(CC) -c $(CFLAGS) -o $@ $<
+	$(E) [CC] $@
+	$(Q)$(CC) -c $(CFLAGS) -o $@ $<
 
 %.o: %.rc
-    $(E) [RC] $@
-    $(Q)$(WINDRES) $(RCFLAGS) -o $@ $<
+	$(E) [RC] $@
+	$(Q)$(WINDRES) $(RCFLAGS) -o $@ $<
 
 $(TARGET): $(OBJS)
-    $(E) [LD] $@
-    $(Q)$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
+	$(E) [LD] $@
+	$(Q)$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 clean:
-    $(E) [CLEAN]
-    $(Q)$(RM) *.o *.d $(TARGET)
+	$(E) [CLEAN]
+	$(Q)$(RM) *.o *.d $(TARGET)
 
 strip: $(TARGET)
-    $(E) [STRIP]
-    $(Q)$(STRIP) $(TARGET)
+	$(E) [STRIP]
+	$(Q)$(STRIP) $(TARGET)
