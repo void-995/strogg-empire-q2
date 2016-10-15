@@ -32,8 +32,8 @@ static void G_BotRunFrame(edict_t *self)
 	usercmd_t ucmd;
 	edict_t *player;
 	edict_t *enemy;
-	float playerDistance;
-	float enemyDistance;
+	float player_distance;
+	float enemy_distance;
 	vec3_t eye;
 	vec3_t target;
 	vec3_t delta;
@@ -53,7 +53,7 @@ static void G_BotRunFrame(edict_t *self)
 		ucmd.buttons = BUTTON_ATTACK;
 	} else {
 		enemy = NULL;
-		enemyDistance = 65536.f;
+		enemy_distance = 65536.f;
 
 		for (i = 1; i <= game.maxclients; i++) {
 			player = &g_edicts[i];
@@ -72,10 +72,10 @@ static void G_BotRunFrame(edict_t *self)
 
 			if (tr.ent == player) {
 				VectorSubtract(player->s.origin, self->s.origin, delta);
-				playerDistance = VectorLength(delta);
+				player_distance = VectorLength(delta);
 
-				if (enemyDistance > playerDistance) {
-					enemyDistance = playerDistance;
+				if (enemy_distance > player_distance) {
+					enemy_distance = player_distance;
 					enemy = player;
 				}
 			}
@@ -94,7 +94,7 @@ static void G_BotRunFrame(edict_t *self)
 			ucmd.angles[PITCH] = ANGLE2SHORT(angles[PITCH]);
 			ucmd.angles[YAW] = ANGLE2SHORT(angles[YAW]);
 
-			ucmd.forwardmove = enemyDistance - 192;
+			ucmd.forwardmove = enemy_distance - 192;
 
 			if (abs(ucmd.forwardmove) > 64) {
 				ucmd.forwardmove *= 64;
@@ -166,14 +166,14 @@ edict_t *G_BotFindFreeClientEntity(void)
 
 void Cmd_Addbot_f(edict_t *ent)
 {
-	qboolean clientCanAddBots;
+	qboolean client_can_add_bots;
 	char botuserinfo[MAX_STRING_CHARS];
 
 	edict_t *bot;
 
-	clientCanAddBots = ent->client->pers.admin || ent->client->pers.loopback;
+	client_can_add_bots = ent->client->pers.admin || ent->client->pers.loopback;
 
-	if (!clientCanAddBots) {
+	if (!client_can_add_bots) {
 		gi.cprintf(ent, PRINT_HIGH, "You are not allowed to add bots.\n");
 		return;
 	}

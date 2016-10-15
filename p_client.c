@@ -1117,17 +1117,6 @@ void G_SetDeltaAngles(edict_t *ent, vec3_t angles)
     }
 }
 
-void PlayerThink(edict_t *self)
-{
-    if (!self->deadflag) {
-        if (self->health > self->max_health) {
-            self->health -= 1;
-        }
-    }
-
-    self->nextthink = level.framenum + 1 * HZ;
-}
-
 /*
 ===========
 PutClientInServer
@@ -1211,8 +1200,8 @@ void PutClientInServer(edict_t *ent)
     ent->watertype = 0;
     ent->flags &= ~(FL_NO_KNOCKBACK | FL_MEGAHEALTH);
     ent->svflags &= ~(SVF_DEADMONSTER | SVF_NOCLIENT);
-    ent->nextthink = level.framenum + 1.5 * HZ;
-    ent->think = PlayerThink;
+    ent->client->next_health_limit_check = level.framenum + 1.5 * HZ;
+    ent->client->next_armor_limit_check = level.framenum + 1.5 * HZ;
 
     VectorSet(ent->mins, -16, -16, -24);
     VectorSet(ent->maxs, 16, 16, 32);
@@ -1899,10 +1888,52 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
             client->level.jump_held = qfalse;
         }
     }
-
 }
 
-qboolean SV_RunThink(edict_t *ent);
+extern const gitem_armor_t jacketarmor_info, combatarmor_info, bodyarmor_info;
+
+int ArmorIndex(edict_t *ent);
+
+static void PlayerHealthLimitCheck(edict_t *self)
+{
+    if (!self->deadflag && self->client->ps.pmove.pm_type != PM_SPECTATOR) {
+        if (self->health > self->max_health) {
+            self->health -= 1;
+        }
+    }
+
+    self->client->next_health_limit_check = level.framenum + 1 * HZ;
+}
+
+static void PlayerArmorLimitCheck(edict_t *self)
+{
+    int armor_index;
+    const gitem_armor_t *current_armor_info;
+
+    if (!self->deadflag && self->client->ps.pmove.pm_type != PM_SPECTATOR) {
+        armor_index = ArmorIndex(self);
+
+        if (armor_index > 0) {
+            switch (armor_index) {
+            case ITEM_ARMOR_JACKET:
+                current_armor_info = &jacketarmor_info;
+                break;
+            case ITEM_ARMOR_COMBAT:
+                current_armor_info = &combatarmor_info;
+                break;
+            default:
+                current_armor_info = &bodyarmor_info;
+                break;
+            }
+
+            if (self->client->inventory[armor_index] > current_armor_info->max_count) {
+                self->client->inventory[armor_index] -= 1;
+            }
+        }
+    }
+
+    self->client->next_armor_limit_check = level.framenum + 1.5 * HZ;
+}
 
 /*
 ==============
@@ -1919,9 +1950,19 @@ void ClientBeginServerFrame(edict_t *ent)
     if (level.intermission_framenum)
         return;
 
-    SV_RunThink(ent);
-
     client = ent->client;
+
+    if (client->next_health_limit_check > 0 && level.framenum > client->next_health_limit_check) {
+        client->next_health_limit_check = 0;
+
+        PlayerHealthLimitCheck(ent);
+    }
+
+    if (client->next_armor_limit_check > 0 && level.framenum > client->next_armor_limit_check) {
+        client->next_armor_limit_check = 0;
+
+        PlayerArmorLimitCheck(ent);
+    }
 
     if (client->pers.connected == CONN_SPAWNED) {
         if (FRAMESYNC) {

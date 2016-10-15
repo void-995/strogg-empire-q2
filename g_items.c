@@ -36,9 +36,9 @@ void Weapon_GrenadeLauncher(edict_t *ent);
 void Weapon_Railgun(edict_t *ent);
 void Weapon_BFG(edict_t *ent);
 
-static const gitem_armor_t jacketarmor_info = { 25,  50, .30, .00, ARMOR_JACKET};
-static const gitem_armor_t combatarmor_info = { 50, 100, .60, .30, ARMOR_COMBAT};
-static const gitem_armor_t bodyarmor_info   = {100, 200, .80, .60, ARMOR_BODY};
+const gitem_armor_t jacketarmor_info = { 25,  50, .30, .00, ARMOR_JACKET};
+const gitem_armor_t combatarmor_info = { 50, 100, .60, .30, ARMOR_COMBAT};
+const gitem_armor_t bodyarmor_info   = {100, 200, .80, .60, ARMOR_BODY};
 
 #define HEALTH_IGNORE_MAX   1
 #define HEALTH_TIMED        2
@@ -493,6 +493,10 @@ void MegaHealth_think(edict_t *self)
 
 qboolean Pickup_Health(edict_t *ent, edict_t *other)
 {
+    if (!other->client) {
+        return qfalse;
+    }
+
     if (!(ent->style & HEALTH_IGNORE_MAX)) {
         if (other->health >= other->max_health) {
             return qfalse;
@@ -523,7 +527,8 @@ qboolean Pickup_Health(edict_t *ent, edict_t *other)
         ent->svflags |= SVF_NOCLIENT;
         ent->solid = SOLID_NOT;
         other->flags |= FL_MEGAHEALTH;
-        other->nextthink = level.framenum + 5 * HZ;
+
+        other->client->next_health_limit_check = level.framenum + 5 * HZ;
     } else {
         if (!(ent->spawnflags & DROPPED_ITEM))
             SetRespawn(ent, 30);
@@ -567,12 +572,30 @@ qboolean Pickup_Armor(edict_t *ent, edict_t *other)
 
     old_armor_index = ArmorIndex(other);
 
+    // get info on old armor
+    if (old_armor_index != 0) {
+        switch (old_armor_index) {
+        case ITEM_ARMOR_JACKET:
+            oldinfo = &jacketarmor_info;
+            break;
+        case ITEM_ARMOR_COMBAT:
+            oldinfo = &combatarmor_info;
+            break;
+        default:
+            oldinfo = &bodyarmor_info;
+            break;
+        }
+    }
+
     // handle armor shards specially
     if (ent->item->tag == ARMOR_SHARD) {
-        if (!old_armor_index)
+        if (!old_armor_index){
             other->client->inventory[ITEM_ARMOR_JACKET] = 2;
-        else
+        } else if (other->client->inventory[old_armor_index] < oldinfo->max_count * 1.5) {
             other->client->inventory[old_armor_index] += 2;
+        } else {
+            return qfalse;
+        }
     }
     // if player has no armor, just use it
     else if (!old_armor_index) {
@@ -580,14 +603,6 @@ qboolean Pickup_Armor(edict_t *ent, edict_t *other)
     }
     // use the better armor
     else {
-        // get info on old armor
-        if (old_armor_index == ITEM_ARMOR_JACKET)
-            oldinfo = &jacketarmor_info;
-        else if (old_armor_index == ITEM_ARMOR_COMBAT)
-            oldinfo = &combatarmor_info;
-        else
-            oldinfo = &bodyarmor_info;
-
         if (newinfo->normal_protection > oldinfo->normal_protection) {
             // calc new armor values
             salvage = oldinfo->normal_protection / newinfo->normal_protection;
@@ -620,6 +635,8 @@ qboolean Pickup_Armor(edict_t *ent, edict_t *other)
 
     if (!(ent->spawnflags & DROPPED_ITEM))
         SetRespawn(ent, 20);
+
+    other->client->next_armor_limit_check = level.framenum + 1.5 * HZ;
 
     return qtrue;
 }

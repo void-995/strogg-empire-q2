@@ -1188,6 +1188,9 @@ struct gclient_s {
 
     gitem_t     *weapon;
     gitem_t     *lastweapon;
+
+    int         next_health_limit_check;
+    int         next_armor_limit_check;
 };
 
 
@@ -1280,11 +1283,10 @@ struct edict_s {
 
     int         health;
     int         max_health;
+    int         max_health_absolute;
     int         gib_health;
     int         deadflag;
-    qboolean    show_hostile;
-
-    int         max_health_absolute;
+    qboolean    show_hostile;   
 
     char        *map;           // target_changelevel
 
