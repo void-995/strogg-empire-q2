@@ -1119,10 +1119,14 @@ static void G_Init(void)
         game.framerate = framediv * BASE_FRAMERATE;
         game.frametime = BASE_FRAMETIME_1000 / framediv;
         game.framediv = framediv;
+
+        gi.dprintf("Game is using variable FPS!\n");
     } else {
         game.framerate = BASE_FRAMERATE;
         game.frametime = BASE_FRAMETIME_1000;
         game.framediv = 1;
+
+        gi.dprintf("Game is not using variable FPS!\n");
     }
 #endif
 

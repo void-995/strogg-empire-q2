@@ -396,6 +396,10 @@ static void ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacker)
             message = "tried to invade";
             message2 = "'s personal space";
             break;
+        case MOD_PLASMABEAM:
+            message = "was scorched by";
+            message2 = "'s plasma beam";
+            break;
         }
         if (message) {
             for (i = 0, ent = &g_edicts[1]; i < game.maxclients; i++, ent++) {

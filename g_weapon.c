@@ -744,3 +744,123 @@ void fire_bfg(edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, fl
 
     gi.linkentity(bfg);
 }
+
+void fire_beams(edict_t *self, vec3_t start, vec3_t aimdir, vec3_t offset, int damage, int kick, int te_beam, int te_impact, int mod)
+{
+    trace_t tr;
+    vec3_t dir;
+    vec3_t forward, right, up;
+    vec3_t end;
+    vec3_t water_start, endpoint;
+    qboolean water = qfalse, underwater = qfalse;
+    int content_mask = MASK_SHOT | MASK_WATER;
+    vec3_t beam_endpt;
+
+    if (!self) {
+        return;
+    }
+
+    vectoangles(aimdir, dir);
+    AngleVectors(dir, forward, right, up);
+
+    VectorMA(start, 8192, forward, end);
+
+    if (gi.pointcontents(start) & MASK_WATER) {
+        underwater = qtrue;
+        VectorCopy(start, water_start);
+        content_mask &= ~MASK_WATER;
+    }
+
+    tr = gi.trace(start, NULL, NULL, end, self, content_mask);
+
+    /* see if we hit water */
+    if (tr.contents & MASK_WATER) {
+        water = qtrue;
+        VectorCopy(tr.endpos, water_start);
+
+        if (!VectorCompare(start, tr.endpos))
+        {
+            gi.WriteByte(svc_temp_entity);
+            gi.WriteByte(TE_PLASMABEAM_SPARKS);
+            gi.WritePosition(water_start);
+            gi.WriteDir(tr.plane.normal);
+            gi.multicast(tr.endpos, MULTICAST_PVS);
+        }
+
+        /* re-trace ignoring water this time */
+        tr = gi.trace(water_start, NULL, NULL, end, self, MASK_SHOT);
+    }
+
+    VectorCopy(tr.endpos, endpoint);
+
+    /* halve the damage if target underwater */
+    if (water) {
+        damage = damage / 2;
+    }
+
+    /* send gun puff / flash */
+    if (!((tr.surface) && (tr.surface->flags & SURF_SKY))) {
+        if (tr.fraction < 1.0) {
+            if (tr.ent->takedamage) {
+                T_Damage(tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal,
+                        damage, kick, DAMAGE_ENERGY, mod);
+            } else {
+                if ((!water) && (strncmp(tr.surface->name, "sky", 3)))
+                {
+                    /* This is the truncated steam entry - uses 1+1+2 extra bytes of data */
+                    gi.WriteByte(svc_temp_entity);
+                    gi.WriteByte(TE_PLASMABEAM_STEAM);
+                    gi.WritePosition(tr.endpos);
+                    gi.WriteDir(tr.plane.normal);
+                    gi.multicast(tr.endpos, MULTICAST_PVS);
+                }
+            }
+        }
+    }
+
+    /* if went through water, determine where the end and make a bubble trail */
+    if ((water) || (underwater)) {
+        vec3_t pos;
+
+        VectorSubtract(tr.endpos, water_start, dir);
+        VectorNormalize(dir);
+        VectorMA(tr.endpos, -2, dir, pos);
+
+        if (gi.pointcontents(pos) & MASK_WATER) {
+            VectorCopy(pos, tr.endpos);
+        } else {
+            tr = gi.trace(pos, NULL, NULL, water_start, tr.ent, MASK_WATER);
+        }
+
+        VectorAdd(water_start, tr.endpos, pos);
+        VectorScale(pos, 0.5, pos);
+
+        gi.WriteByte(svc_temp_entity);
+        gi.WriteByte(TE_BUBBLETRAIL2);
+        gi.WritePosition(water_start);
+        gi.WritePosition(tr.endpos);
+        gi.multicast(pos, MULTICAST_PVS);
+    }
+
+    if ((!underwater) && (!water)) {
+        VectorCopy(tr.endpos, beam_endpt);
+    } else {
+        VectorCopy(endpoint, beam_endpt);
+    }
+
+    gi.WriteByte(svc_temp_entity);
+    gi.WriteByte(te_beam);
+    gi.WriteShort(self - g_edicts);
+    gi.WritePosition(start);
+    gi.WritePosition(beam_endpt);
+    gi.multicast(self->s.origin, MULTICAST_ALL);
+}
+
+void fire_heat(edict_t *self, vec3_t start, vec3_t aimdir, vec3_t offset, int damage, int kick, qboolean monster)
+{
+    if (!self) {
+        return;
+    }
+
+    fire_beams(self, start, aimdir, offset, damage, kick, TE_PLASMABEAM, TE_PLASMABEAM_SPARKS, MOD_PLASMABEAM);
+}

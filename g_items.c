@@ -35,6 +35,7 @@ void Weapon_Grenade(edict_t *ent);
 void Weapon_GrenadeLauncher(edict_t *ent);
 void Weapon_Railgun(edict_t *ent);
 void Weapon_BFG(edict_t *ent);
+void Weapon_PlasmaBeam(edict_t *ent);
 
 static const gitem_armor_t jacketarmor_info = { 25,  50, .30, .00, ARMOR_JACKET};
 static const gitem_armor_t combatarmor_info = { 50, 100, .60, .30, ARMOR_COMBAT};
@@ -1385,7 +1386,7 @@ const gitem_t   g_itemlist[ITEM_TOTAL] = {
     /*QUAKED weapon_chaingun (.3 .3 1) (-16 -16 -16) (16 16 16)
     */
     {
-        "weapon_chaingun",
+        "weapon_chaingun_original",
         Pickup_Weapon,
         Use_Weapon,
         Drop_Weapon,
@@ -1497,6 +1498,28 @@ const gitem_t   g_itemlist[ITEM_TOTAL] = {
         /* precache */ "models/objects/laser/tris.md2 weapons/hyprbu1a.wav weapons/hyprbl1a.wav weapons/hyprbf1a.wav weapons/hyprbd1a.wav misc/lasfly.wav"
     },
 
+    /* QUAKED weapon_plasmabeam (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN */
+    {
+        "weapon_chaingun", // "weapon_plasmabeam",
+        Pickup_Weapon,
+        Use_Weapon,
+        Drop_Weapon,
+        Weapon_PlasmaBeam,
+        "misc/w_pkup.wav",
+        "models/weapons/g_beamer/tris.md2", EF_ROTATE,
+        "models/weapons/v_beamer/tris.md2",
+        "w_heatbeam", /* icon */
+        "Plasma Beam", /* pickup */
+        0,
+        2,
+        "Bullets",
+        IT_WEAPON,
+        WEAP_PLASMABEAM,
+        NULL,
+        0,
+        "models/weapons/v_beamer2/tris.md2 weapons/bfg__l1a.wav",
+    },
+
     /*QUAKED weapon_railgun (.3 .3 1) (-16 -16 -16) (16 16 16)
     */
     {
@@ -1581,9 +1604,9 @@ const gitem_t   g_itemlist[ITEM_TOTAL] = {
         "misc/am_pkup.wav",
         "models/items/ammo/bullets/medium/tris.md2", 0,
         NULL,
-        /* icon */      "a_bullets",
-        /* pickup */    "Bullets",
-        /* width */     3,
+        "a_bullets", /* icon */ 
+        "Bullets", /* pickup */
+        3, /* width */
         50,
         NULL,
         IT_AMMO,

@@ -175,6 +175,7 @@ typedef enum {
     ITEM_GRENADELAUNCHER,
     ITEM_ROCKETLAUNCHER,
     ITEM_HYPERBLASTER,
+    ITEM_PLASMABEAM,
     ITEM_RAILGUN,
     ITEM_BFG,
     ITEM_SHELLS,
@@ -308,10 +309,11 @@ typedef struct {
 #define WEAP_GRENADELAUNCHER    7
 #define WEAP_ROCKETLAUNCHER     8
 #define WEAP_HYPERBLASTER       9
-#define WEAP_RAILGUN            10
-#define WEAP_BFG                11
+#define WEAP_PLASMABEAM         10
+#define WEAP_RAILGUN            11
+#define WEAP_BFG                12
 
-#define WEAP_TOTAL              12
+#define WEAP_TOTAL              13
 
 typedef struct gitem_s {
     char        *classname; // spawning name
@@ -630,7 +632,8 @@ extern  spawn_temp_t    st;
 #define MOD_TRIGGER_HURT    31
 #define MOD_HIT             32
 #define MOD_TARGET_BLASTER  33
-#define MOD_TOTAL           34
+#define MOD_PLASMABEAM      34
+#define MOD_TOTAL           35
 #define MOD_FRIENDLY_FIRE   0x8000000
 
 extern  int         meansOfDeath;

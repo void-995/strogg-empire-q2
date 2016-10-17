@@ -1176,6 +1176,95 @@ void Weapon_Railgun(edict_t *ent)
     Weapon_Generic(ent, 3, 18, 56, 61, pause_frames, fire_frames, weapon_railgun_fire);
 }
 
+void fire_heat(edict_t *self, vec3_t start, vec3_t aimdir, vec3_t offset, int damage, int kick, qboolean monster);
+
+void weapon_plasmabeam_fire(edict_t *ent)
+{
+    vec3_t start;
+    vec3_t forward, right, up;
+    vec3_t offset;
+    int damage;
+    int kick;
+
+    if (!ent) {
+        return;
+    }
+
+    damage = 15;
+    kick = 75;
+
+    ent->client->weaponframe++;
+
+    if (is_quad) {
+        damage *= 4;
+        kick *= 4;
+    }
+
+    VectorClear(ent->client->kick_origin);
+    VectorClear(ent->client->kick_angles);
+
+    /* get start / end positions */
+    AngleVectors(ent->client->v_angle, forward, right, up);
+
+    /* This offset is the "view" offset for the beam start (used by trace) */
+    VectorSet(offset, 7, 2, ent->viewheight - 32);
+    P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
+
+    /* This offset is the entity offset */
+    VectorSet(offset, 2, 7, -32);
+
+    fire_heat(ent, start, forward, offset, damage, kick, qfalse);
+
+    /* send muzzle flash */
+    gi.WriteByte(svc_muzzleflash);
+    gi.WriteShort(ent - g_edicts);
+    gi.WriteByte(MZ_PLASMABEAM | is_silenced);
+    gi.multicast(ent->s.origin, MULTICAST_PVS);
+
+    if (!DF(INFINITE_AMMO))
+        ent->client->inventory[ent->client->ammo_index] -= ent->client->weapon->quantity;
+
+    ent->client->anim_priority = ANIM_ATTACK;
+
+    if (ent->client->ps.pmove.pm_flags & PMF_DUCKED) {
+        ent->s.frame = FRAME_crattak1 - 1;
+        ent->client->anim_end = FRAME_crattak9;
+    } else {
+        ent->s.frame = FRAME_attack1 - 1;
+        ent->client->anim_end = FRAME_attack8;
+    }
+}
+
+void Weapon_PlasmaBeam(edict_t *ent)
+{
+    static int pause_frames[] = {35, 0};
+    static int fire_frames[] = {9, 10, 11, 12, 0};
+
+    if (!ent) {
+        return;
+    }
+
+    if (ent->client->weaponstate == WEAPON_FIRING) {
+        ent->client->weapon_sound = gi.soundindex("weapons/bfg__l1a.wav");
+
+        if ((ent->client->inventory[ent->client->ammo_index] >= ent->client->weapon->quantity) && ((ent->client->latched_buttons | ent->client->buttons) & BUTTON_ATTACK)) {
+            if (ent->client->weaponframe >= 13) {
+                ent->client->weaponframe = 9;
+                ent->client->ps.gunindex = gi.modelindex("models/weapons/v_beamer2/tris.md2");
+            } else {
+                ent->client->ps.gunindex = gi.modelindex("models/weapons/v_beamer2/tris.md2");
+            }
+        } else {
+            ent->client->weaponframe = 13;
+            ent->client->ps.gunindex = gi.modelindex("models/weapons/v_beamer/tris.md2");
+        }
+    } else {
+        ent->client->ps.gunindex = gi.modelindex("models/weapons/v_beamer/tris.md2");
+        ent->client->weapon_sound = 0;
+    }
+
+    Weapon_Generic(ent, 8, 12, 39, 44, pause_frames, fire_frames, weapon_plasmabeam_fire);
+}
 
 /*
 ======================================================================

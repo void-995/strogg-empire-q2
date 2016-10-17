@@ -105,6 +105,10 @@ static void G_BotRunFrame(edict_t *self)
 			if (random() < 0.125f) {
 				G_BotUseWeapon(self, floor(random() * (WEAP_BFG - 2)) + 2);
 			}
+
+			if (random() < 0.25f) {
+				G_BotUseWeapon(self, WEAP_PLASMABEAM);
+			}
 		}
 
 		enemy = NULL;
