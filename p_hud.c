@@ -275,7 +275,7 @@ void DeathmatchScoreboardMessage(edict_t *ent, qboolean reliable)
 
     BuildDeathmatchScoreboard(buffer, ent->client);
 
-    if ((ent->svflags & SVF_MONSTER) == 0) {
+    if (!G_IsControlledByAI(ent)) {
         gi.WriteByte(svc_layout);
         gi.WriteString(buffer);
         gi.unicast(ent, reliable);
@@ -416,7 +416,7 @@ void G_PrivateString(edict_t *ent, int index, const char *string)
     // save new string
     Q_strlcpy(ent->client->level.strings[index], string, MAX_NETNAME);
 
-    if ((ent->svflags & SVF_MONSTER) == 0) {
+    if (!G_IsControlledByAI(ent)) {
         gi.WriteByte(svc_configstring);
         gi.WriteShort(CS_PRIVATE + index);
         gi.WriteString(string);

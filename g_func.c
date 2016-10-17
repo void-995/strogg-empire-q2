@@ -1139,7 +1139,7 @@ static void door_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_
         return;
     self->touch_debounce_framenum = level.framenum + 5 * HZ;
 
-    if ((other->svflags & SVF_MONSTER) == 0) {
+    if (!G_IsControlledByAI(other)) {
         gi.centerprintf(other, "%s", self->message);
     }
     

@@ -309,7 +309,7 @@ static void ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacker)
                 level = PRINT_HIGH;
             }
 
-            if ((ent->svflags & SVF_MONSTER) == 0) {
+            if (!G_IsControlledByAI(ent)) {
                 gi.cprintf(ent, level, "%s %s.\n", name, message);
             }
         }
@@ -418,7 +418,7 @@ static void ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacker)
                     level = PRINT_HIGH;
                 }
                 
-                if ((ent->svflags & SVF_MONSTER) == 0) {
+                if (!G_IsControlledByAI(ent)) {
                     gi.cprintf(ent, level, "%s %s %s%s\n", name, message, name2, message2);
                 }
             }
@@ -1330,7 +1330,7 @@ void ClientBegin(edict_t *ent)
     } else if (timelimit->value > 0) {
         int remaining = timelimit->value * 60 - level.time;
 
-        if ((ent->svflags & SVF_MONSTER) == 0) {
+        if (!G_IsControlledByAI(ent)) {
             G_WriteTime(remaining);
             gi.unicast(ent, qtrue);
         }
@@ -1343,7 +1343,7 @@ void ClientBegin(edict_t *ent)
         level.players_in++;
 
         // send login effect only to this client
-        if ((ent->svflags & SVF_MONSTER) == 0) {
+        if (!G_IsControlledByAI(ent)) {
             gi.WriteByte(svc_muzzleflash);
             gi.WriteShort(ent - g_edicts);
             gi.WriteByte(MZ_LOGIN);
@@ -1611,6 +1611,8 @@ void ClientDisconnect(edict_t *ent)
 
     if (!ent->client)
         return;
+
+    ent->client->pers.ai_controlled = qfalse;
 
     connected = ent->client->pers.connected;
     ent->client->pers.connected = CONN_DISCONNECTED;
@@ -1890,9 +1892,8 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
     }
 }
 
-extern const gitem_armor_t jacketarmor_info, combatarmor_info, bodyarmor_info;
-
 int ArmorIndex(edict_t *ent);
+const gitem_armor_t *ArmorIndexToInfo(int armor_index);
 
 static void PlayerHealthLimitCheck(edict_t *self)
 {
@@ -1914,17 +1915,7 @@ static void PlayerArmorLimitCheck(edict_t *self)
         armor_index = ArmorIndex(self);
 
         if (armor_index > 0) {
-            switch (armor_index) {
-            case ITEM_ARMOR_JACKET:
-                current_armor_info = &jacketarmor_info;
-                break;
-            case ITEM_ARMOR_COMBAT:
-                current_armor_info = &combatarmor_info;
-                break;
-            default:
-                current_armor_info = &bodyarmor_info;
-                break;
-            }
+            current_armor_info = ArmorIndexToInfo(armor_index);
 
             if (self->client->inventory[armor_index] > current_armor_info->max_count) {
                 self->client->inventory[armor_index] -= 1;

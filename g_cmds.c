@@ -734,7 +734,7 @@ static void Cmd_Say_f(edict_t *ent, chat_t chat)
     if (chat == CHAT_TEAM && (int)g_team_chat->value == 0 && PLAYER_SPAWNED(ent)) {
         build_chat(cl->pers.netname, chat, start, text);
 
-        if ((ent->svflags & SVF_MONSTER) == 0) {
+        if (!G_IsControlledByAI(ent)) {
             gi.cprintf(ent, PRINT_CHAT, "%s\n", text);
         }
 
@@ -780,7 +780,7 @@ static void Cmd_Say_f(edict_t *ent, chat_t chat)
             continue;
         }
 
-        if ((other->svflags & SVF_MONSTER) == 0) {
+        if (!G_IsControlledByAI(other)) {
             gi.cprintf(other, PRINT_CHAT, "%s\n", text);
         }
     }
@@ -1506,14 +1506,12 @@ static void Cmd_OldScore_f(edict_t *ent)
 
     ent->client->layout = LAYOUT_OLDSCORES;
 
-    if ((ent->svflags & SVF_MONSTER) == 0) {
+    if (!G_IsControlledByAI(ent)) {
         gi.WriteByte(svc_layout);
         gi.WriteString(game.oldscores);
         gi.unicast(ent, qtrue);
     }
 }
-
-void Cmd_Addbot_f(edict_t *ent);
 
 /*
 =================

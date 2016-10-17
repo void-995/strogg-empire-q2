@@ -211,7 +211,7 @@ static void trigger_key_use(edict_t *self, edict_t *other, edict_t *activator)
         if (level.framenum < self->touch_debounce_framenum)
             return;
         self->touch_debounce_framenum = level.framenum + 5.0 * HZ;
-        if ((activator->svflags & SVF_MONSTER) == 0) {
+        if (!G_IsControlledByAI(activator)) {
             gi.centerprintf(activator, "You need the %s", self->item->pickup_name);
         }
 
@@ -278,7 +278,7 @@ static void trigger_counter_use(edict_t *self, edict_t *other, edict_t *activato
 
     if (self->count) {
         if (!(self->spawnflags & 1)) {
-            if ((activator->svflags & SVF_MONSTER) == 0) {
+            if (!G_IsControlledByAI(activator)) {
                 gi.centerprintf(activator, "%i more to go...", self->count);
             }
 
@@ -288,7 +288,7 @@ static void trigger_counter_use(edict_t *self, edict_t *other, edict_t *activato
     }
 
     if (!(self->spawnflags & 1)) {
-        if ((activator->svflags & SVF_MONSTER) == 0) {
+        if (!G_IsControlledByAI(activator)) {
             gi.centerprintf(activator, "Sequence completed!");
         }
 

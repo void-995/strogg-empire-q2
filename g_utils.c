@@ -191,7 +191,7 @@ void G_UseTargets(edict_t *ent, edict_t *activator)
 // print the message
 //
     if ((ent->message) && !(activator->svflags & SVF_MONSTER)) {
-        if ((activator->svflags & SVF_MONSTER) == 0) {
+        if (!G_IsControlledByAI(activator)) {
             gi.centerprintf(activator, "%s", ent->message);
         }
 

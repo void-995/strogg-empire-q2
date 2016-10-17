@@ -30,6 +30,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // because we define the full size ones in this file
 #define GAME_INCLUDE
 #include "g_public.h"
+#include "g_bot.h"
 
 #if USE_FPS
 #define G_GMF_VARIABLE_FPS GMF_VARIABLE_FPS
@@ -1055,7 +1056,8 @@ typedef struct {
                 mvdspec: 1,
                 admin: 1,
                 noviewid: 1,
-                muted: 1;
+                muted: 1,
+                ai_controlled: 1;
 } client_persistant_t;
 
 // client data that stays across deathmatch respawns,
@@ -1192,7 +1194,6 @@ struct gclient_s {
     int         next_health_limit_check;
     int         next_armor_limit_check;
 };
-
 
 struct edict_s {
     entity_state_t  s;

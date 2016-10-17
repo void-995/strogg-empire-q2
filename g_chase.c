@@ -277,7 +277,7 @@ qboolean GetChaseTarget(edict_t *ent, chase_mode_t mode)
     }
 
 notfound:
-    if ((ent->svflags & SVF_MONSTER) == 0) {
+    if (!G_IsControlledByAI(ent)) {
         gi.cprintf(ent, PRINT_HIGH, "No players to chase.\n");
     }
     return qfalse;

@@ -246,7 +246,7 @@ void Use_Weapon(edict_t *ent, gitem_t *item)
         ammo_index = ITEM_INDEX(ammo_item);
 
         if (!ent->client->inventory[ammo_index]) {
-            if ((ent->svflags & SVF_MONSTER) == 0) {
+            if (!G_IsControlledByAI(ent)) {
                 gi.cprintf(ent, PRINT_HIGH, "No %s for %s.\n", ammo_item->pickup_name, item->pickup_name);
             }
 
@@ -254,7 +254,7 @@ void Use_Weapon(edict_t *ent, gitem_t *item)
         }
 
         if (ent->client->inventory[ammo_index] < item->quantity) {
-            if ((ent->svflags & SVF_MONSTER) == 0) {
+            if (!G_IsControlledByAI(ent)) {
                 gi.cprintf(ent, PRINT_HIGH, "Not enough %s for %s.\n", ammo_item->pickup_name, item->pickup_name);
             }
 
@@ -283,7 +283,7 @@ void Drop_Weapon(edict_t *ent, gitem_t *item)
     index = ITEM_INDEX(item);
     // see if we're already using it
     if (((item == ent->client->weapon) || (item == ent->client->newweapon)) && (ent->client->inventory[index] == 1)) {
-        if ((ent->svflags & SVF_MONSTER) == 0) {
+        if (!G_IsControlledByAI(ent)) {
             gi.cprintf(ent, PRINT_HIGH, "Can't drop current weapon\n");
         }
         

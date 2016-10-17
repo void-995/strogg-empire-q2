@@ -25,6 +25,53 @@ void ClientBegin(edict_t *ent);
 void ClientThink(edict_t *ent, usercmd_t *ucmd);
 void ClientUserinfoChanged(edict_t *ent, char *userinfo);
 
+qboolean G_IsControlledByAI(edict_t *ent)
+{
+	if (!ent->client) {
+		return qfalse;
+	}
+
+	return ent->client->pers.ai_controlled; 
+}
+
+static void G_BotCheatWeapons(edict_t *self)
+{
+	int i;
+	gitem_t *it;
+
+	for (i = 0; i < ITEM_TOTAL; i++) {
+        it = INDEX_ITEM(i);
+
+        if (!it->pickup)
+            continue;
+
+        if (!(it->flags & IT_WEAPON))
+            continue;
+
+        self->client->inventory[i] += 1;
+    }
+
+    for (i = 0; i < ITEM_TOTAL; i++) {
+        it = INDEX_ITEM(i);
+
+        if (!it->pickup)
+            continue;
+
+        if (!(it->flags & IT_AMMO))
+            continue;
+
+        Add_Ammo(self, it, 1000);
+    }
+}
+
+static void G_BotUseWeapon(edict_t *self, int weapon_index)
+{
+	gitem_t *it;
+
+	it = INDEX_ITEM(weapon_index + ITEM_BLASTER - 1);
+	it->use(self, it);
+}
+
 static void G_BotRunFrame(edict_t *self)
 {
 	int i;
@@ -52,6 +99,14 @@ static void G_BotRunFrame(edict_t *self)
 		self->client->buttons = 0;
 		ucmd.buttons = BUTTON_ATTACK;
 	} else {
+		if (random() < 0.125f) {
+			G_BotCheatWeapons(self);
+
+			if (random() < 0.125f) {
+				G_BotUseWeapon(self, floor(random() * (WEAP_BFG - 2)) + 2);
+			}
+		}
+
 		enemy = NULL;
 		enemy_distance = 65536.f;
 
@@ -110,7 +165,7 @@ static void G_BotRunFrame(edict_t *self)
 				ucmd.upmove = -1000;
 			}
 
-			ucmd.buttons = random() > 0.25f ? BUTTON_ATTACK : 0;
+			ucmd.buttons = random() < 0.95f ? BUTTON_ATTACK : 0;
 		} else {
 			if (level.framenum % 100 < 90) {
 				if (random() < 0.5f) {
@@ -139,7 +194,7 @@ void G_BotsRunFrame(void)
 	for (i = 1; i <= game.maxclients; i++) {
 		player = &g_edicts[i];
 
-		if (player->svflags & SVF_MONSTER) {
+		if (G_IsControlledByAI(player)) {
 			G_BotRunFrame(player);
 		}
 	}
@@ -153,7 +208,7 @@ edict_t *G_BotFindFreeClientEntity(void)
 
 	for (i = game.maxclients; i >= 1; i--) {
 		player = &g_edicts[i];
-		client = &game.clients[i - 1];
+		client = game.clients + (player - g_edicts - 1);
 
 		if (!player->inuse && !client->pers.connected) {
 			player->client = client;
@@ -183,9 +238,9 @@ void Cmd_Addbot_f(edict_t *ent)
 	bot = G_BotFindFreeClientEntity();
 
 	if (bot != NULL) {
-		bot->svflags |= SVF_MONSTER;
-
 		if (ClientConnect(bot, botuserinfo)) {
+			bot->client->pers.ai_controlled = qtrue;
+
 			ClientUserinfoChanged(bot, botuserinfo);
 			ClientBegin(bot);
 		} else {

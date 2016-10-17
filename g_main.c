@@ -634,7 +634,7 @@ void G_StartSound(int index)
 
 void G_StuffText(edict_t *ent, const char *text)
 {
-    if ((ent->svflags & SVF_MONSTER) == 0) {
+    if (!G_IsControlledByAI(ent)) {
         gi.WriteByte(svc_stufftext);
         gi.WriteString(text);
         gi.unicast(ent, qtrue);
@@ -790,8 +790,6 @@ void G_ExitLevel(void)
 
     level.intermission_exit = level.framenum;
 }
-
-void G_BotsRunFrame(void);
 
 /*
 ================

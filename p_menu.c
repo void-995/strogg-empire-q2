@@ -125,7 +125,7 @@ void PMenu_Update(edict_t *ent)
     //}
 
     // been a second or more since last update, update now
-    if ((ent->svflags & SVF_MONSTER) == 0) {
+    if (!G_IsControlledByAI(ent)) {
         PMenu_Write(ent);
         gi.unicast(ent, qtrue);
     }

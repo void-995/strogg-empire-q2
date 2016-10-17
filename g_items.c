@@ -36,9 +36,9 @@ void Weapon_GrenadeLauncher(edict_t *ent);
 void Weapon_Railgun(edict_t *ent);
 void Weapon_BFG(edict_t *ent);
 
-const gitem_armor_t jacketarmor_info = { 25,  50, .30, .00, ARMOR_JACKET};
-const gitem_armor_t combatarmor_info = { 50, 100, .60, .30, ARMOR_COMBAT};
-const gitem_armor_t bodyarmor_info   = {100, 200, .80, .60, ARMOR_BODY};
+static const gitem_armor_t jacketarmor_info = { 25,  50, .30, .00, ARMOR_JACKET};
+static const gitem_armor_t combatarmor_info = { 50, 100, .60, .30, ARMOR_COMBAT};
+static const gitem_armor_t bodyarmor_info   = {100, 200, .80, .60, ARMOR_BODY};
 
 #define HEALTH_IGNORE_MAX   1
 #define HEALTH_TIMED        2
@@ -462,7 +462,7 @@ void Drop_Ammo(edict_t *ent, gitem_t *item)
         ent->client->weapon->tag == AMMO_GRENADES &&
         item->tag == AMMO_GRENADES &&
         ent->client->inventory[index] - dropped->count <= 0) {
-            if ((ent->svflags & SVF_MONSTER) == 0) {
+            if (!G_IsControlledByAI(ent)) {
                 gi.cprintf(ent, PRINT_HIGH, "Can't drop current weapon\n");
             }
 
@@ -558,6 +558,27 @@ int ArmorIndex(edict_t *ent)
     return 0;
 }
 
+const gitem_armor_t *ArmorIndexToInfo(int armor_index)
+{
+    const gitem_armor_t *info = NULL;
+
+    if (armor_index != 0) {
+        switch (armor_index) {
+        case ITEM_ARMOR_JACKET:
+            info = &jacketarmor_info;
+            break;
+        case ITEM_ARMOR_COMBAT:
+            info = &combatarmor_info;
+            break;
+        default:
+            info = &bodyarmor_info;
+            break;
+        }
+    }
+
+    return info;
+}
+
 qboolean Pickup_Armor(edict_t *ent, edict_t *other)
 {
     int             old_armor_index;
@@ -571,21 +592,7 @@ qboolean Pickup_Armor(edict_t *ent, edict_t *other)
     newinfo = (gitem_armor_t *)ent->item->info;
 
     old_armor_index = ArmorIndex(other);
-
-    // get info on old armor
-    if (old_armor_index != 0) {
-        switch (old_armor_index) {
-        case ITEM_ARMOR_JACKET:
-            oldinfo = &jacketarmor_info;
-            break;
-        case ITEM_ARMOR_COMBAT:
-            oldinfo = &combatarmor_info;
-            break;
-        default:
-            oldinfo = &bodyarmor_info;
-            break;
-        }
-    }
+    oldinfo = ArmorIndexToInfo(old_armor_index);
 
     // handle armor shards specially
     if (ent->item->tag == ARMOR_SHARD) {
@@ -667,7 +674,7 @@ void Use_PowerArmor(edict_t *ent, gitem_t *item)
         gi.sound(ent, CHAN_AUTO, gi.soundindex("misc/power2.wav"), 1, ATTN_NORM, 0);
     } else {
         if (!ent->client->inventory[ITEM_CELLS]) {
-            if ((ent->svflags & SVF_MONSTER) == 0) {
+            if (!G_IsControlledByAI(ent)) {
                 gi.cprintf(ent, PRINT_HIGH, "No cells for power armor.\n");
             }
             
