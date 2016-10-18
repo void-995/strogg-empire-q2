@@ -1386,7 +1386,7 @@ const gitem_t   g_itemlist[ITEM_TOTAL] = {
     /*QUAKED weapon_chaingun (.3 .3 1) (-16 -16 -16) (16 16 16)
     */
     {
-        "weapon_chaingun_original",
+        "weapon_chaingun",
         Pickup_Weapon,
         Use_Weapon,
         Drop_Weapon,
@@ -1500,7 +1500,7 @@ const gitem_t   g_itemlist[ITEM_TOTAL] = {
 
     /* QUAKED weapon_plasmabeam (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN */
     {
-        "weapon_chaingun", // "weapon_plasmabeam",
+        "weapon_plasmabeam",
         Pickup_Weapon,
         Use_Weapon,
         Drop_Weapon,
@@ -1512,7 +1512,7 @@ const gitem_t   g_itemlist[ITEM_TOTAL] = {
         "Plasma Beam", /* pickup */
         0,
         2,
-        "Bullets",
+        "Cells",
         IT_WEAPON,
         WEAP_PLASMABEAM,
         NULL,

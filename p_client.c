@@ -63,7 +63,6 @@ void SP_info_player_intermission(void)
 
 void player_pain(edict_t *self, edict_t *other, float kick, int damage)
 {
-    G_Feedback_ClientHit(other, self, damage);
 }
 
 

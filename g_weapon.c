@@ -745,6 +745,8 @@ void fire_bfg(edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, fl
     gi.linkentity(bfg);
 }
 
+#define PLASMABEAM_RANGE 768
+
 void fire_beams(edict_t *self, vec3_t start, vec3_t aimdir, vec3_t offset, int damage, int kick, int te_beam, int te_impact, int mod)
 {
     trace_t tr;
@@ -752,6 +754,7 @@ void fire_beams(edict_t *self, vec3_t start, vec3_t aimdir, vec3_t offset, int d
     vec3_t forward, right, up;
     vec3_t end;
     vec3_t water_start, endpoint;
+    float beam_range;
     qboolean water = qfalse, underwater = qfalse;
     int content_mask = MASK_SHOT | MASK_WATER;
     vec3_t beam_endpt;
@@ -760,10 +763,12 @@ void fire_beams(edict_t *self, vec3_t start, vec3_t aimdir, vec3_t offset, int d
         return;
     }
 
+    beam_range = te_beam == TE_HEATBEAM ? PLASMABEAM_RANGE : 8192.f;
+
     vectoangles(aimdir, dir);
     AngleVectors(dir, forward, right, up);
 
-    VectorMA(start, 8192, forward, end);
+    VectorMA(start, beam_range, forward, end);
 
     if (gi.pointcontents(start) & MASK_WATER) {
         underwater = qtrue;
@@ -781,7 +786,7 @@ void fire_beams(edict_t *self, vec3_t start, vec3_t aimdir, vec3_t offset, int d
         if (!VectorCompare(start, tr.endpos))
         {
             gi.WriteByte(svc_temp_entity);
-            gi.WriteByte(TE_PLASMABEAM_SPARKS);
+            gi.WriteByte(TE_HEATBEAM_SPARKS);
             gi.WritePosition(water_start);
             gi.WriteDir(tr.plane.normal);
             gi.multicast(tr.endpos, MULTICAST_PVS);
@@ -805,11 +810,10 @@ void fire_beams(edict_t *self, vec3_t start, vec3_t aimdir, vec3_t offset, int d
                 T_Damage(tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal,
                         damage, kick, DAMAGE_ENERGY, mod);
             } else {
-                if ((!water) && (strncmp(tr.surface->name, "sky", 3)))
-                {
+                if ((!water) && (strncmp(tr.surface->name, "sky", 3))) {
                     /* This is the truncated steam entry - uses 1+1+2 extra bytes of data */
                     gi.WriteByte(svc_temp_entity);
-                    gi.WriteByte(TE_PLASMABEAM_STEAM);
+                    gi.WriteByte(TE_HEATBEAM_STEAM);
                     gi.WritePosition(tr.endpos);
                     gi.WriteDir(tr.plane.normal);
                     gi.multicast(tr.endpos, MULTICAST_PVS);
@@ -856,11 +860,11 @@ void fire_beams(edict_t *self, vec3_t start, vec3_t aimdir, vec3_t offset, int d
     gi.multicast(self->s.origin, MULTICAST_ALL);
 }
 
-void fire_heat(edict_t *self, vec3_t start, vec3_t aimdir, vec3_t offset, int damage, int kick, qboolean monster)
+void fire_heat(edict_t *self, vec3_t start, vec3_t aimdir, vec3_t offset, int damage, int kick)
 {
     if (!self) {
         return;
     }
 
-    fire_beams(self, start, aimdir, offset, damage, kick, TE_PLASMABEAM, TE_PLASMABEAM_SPARKS, MOD_PLASMABEAM);
+    fire_beams(self, start, aimdir, offset, damage, kick, TE_HEATBEAM, TE_HEATBEAM_SPARKS, MOD_PLASMABEAM);
 }

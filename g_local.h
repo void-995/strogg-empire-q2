@@ -1090,6 +1090,11 @@ typedef struct {
     flood_t     chat_flood, wave_flood, info_flood;
 } client_level_t;
 
+typedef struct game_subframe_shoot_s {
+    int     subframe_shoot_next;
+    void    (*subframe_shoot_func)(edict_t *self);
+} game_subframe_shoot_t;
+
 // this structure is cleared on each PutClientInServer(),
 // except for 'client->pers'
 struct gclient_s {
@@ -1196,6 +1201,8 @@ struct gclient_s {
 
     int         next_health_limit_check;
     int         next_armor_limit_check;
+
+    game_subframe_shoot_t game_subframe_shoots[MAX_FRAMEDIV];
 };
 
 struct edict_s {

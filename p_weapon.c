@@ -885,16 +885,41 @@ void Weapon_Machinegun(edict_t *ent)
     Weapon_Generic(ent, 3, 5, 45, 49, pause_frames, fire_frames, weapon_machinegun_fire);
 }
 
-static void weapon_chaingun_fire(edict_t *ent)
+void weapon_chaingun_fire_subframe(edict_t *ent)
 {
-    int         i;
-    int         shots;
     vec3_t      start;
     vec3_t      forward, right, up;
     float       r, u;
     vec3_t      offset;
-    int         damage = 6;
+    int         damage = 7;
     int         kick = 2;
+
+    if (is_quad) {
+        damage *= 4;
+        kick *= 4;
+    }
+
+    // get start / end positions
+    AngleVectors(ent->client->v_angle, forward, right, up);
+    r = 7 + crandom() * 4;
+    u = crandom() * 4;
+
+    VectorSet(offset, 0, r, u + ent->viewheight - 8);
+    P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
+
+    fire_bullet(ent, start, forward, damage, kick, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MOD_CHAINGUN);
+}
+
+static void weapon_chaingun_fire(edict_t *ent)
+{
+    int         i;
+    int         shots;
+    // vec3_t      start;
+    // vec3_t      forward, right, up;
+    // float       r, u;
+    // vec3_t      offset;
+    // int         damage = 6;
+    // int         kick = 2;
 
     if (ent->client->weaponframe == 5)
         gi.sound(ent, CHAN_AUTO, gi.soundindex("weapons/chngnu1a.wav"), 1, ATTN_IDLE, 0);
@@ -944,16 +969,28 @@ static void weapon_chaingun_fire(edict_t *ent)
         return;
     }
 
+    /*
     if (is_quad) {
         damage *= 4;
         kick *= 4;
     }
+    */
 
     for (i = 0; i < 3; i++) {
         ent->client->kick_origin[i] = crandom() * 0.35;
         ent->client->kick_angles[i] = crandom() * 0.7;
     }
 
+    memset(ent->client->game_subframe_shoots, 0, sizeof(game_subframe_shoot_t) * MAX_FRAMEDIV);
+
+    for (i = 0; i < shots; i++) {
+        game_subframe_shoot_t *game_subframe_shoot = &ent->client->game_subframe_shoots[i];
+
+        game_subframe_shoot->subframe_shoot_next = level.framenum + (i / 10.f / shots) * HZ;
+        game_subframe_shoot->subframe_shoot_func = weapon_chaingun_fire_subframe;
+    }
+
+    /*
     G_BeginDamage();
     for (i = 0; i < shots; i++) {
         // get start / end positions
@@ -966,6 +1003,7 @@ static void weapon_chaingun_fire(edict_t *ent)
         fire_bullet(ent, start, forward, damage, kick, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MOD_CHAINGUN);
     }
     G_EndDamage();
+    */
 
     // send muzzle flash
     gi.WriteByte(svc_muzzleflash);
@@ -1176,9 +1214,9 @@ void Weapon_Railgun(edict_t *ent)
     Weapon_Generic(ent, 3, 18, 56, 61, pause_frames, fire_frames, weapon_railgun_fire);
 }
 
-void fire_heat(edict_t *self, vec3_t start, vec3_t aimdir, vec3_t offset, int damage, int kick, qboolean monster);
+void fire_heat(edict_t *self, vec3_t start, vec3_t aimdir, vec3_t offset, int damage, int kick);
 
-void weapon_plasmabeam_fire(edict_t *ent)
+void weapon_plasmabeam_fire_subframe(edict_t *ent)
 {
     vec3_t start;
     vec3_t forward, right, up;
@@ -1190,10 +1228,8 @@ void weapon_plasmabeam_fire(edict_t *ent)
         return;
     }
 
-    damage = 15;
-    kick = 75;
-
-    ent->client->weaponframe++;
+    damage = 2;
+    kick = 4;
 
     if (is_quad) {
         damage *= 4;
@@ -1207,32 +1243,52 @@ void weapon_plasmabeam_fire(edict_t *ent)
     AngleVectors(ent->client->v_angle, forward, right, up);
 
     /* This offset is the "view" offset for the beam start (used by trace) */
-    VectorSet(offset, 7, 2, ent->viewheight - 32);
+    VectorSet(offset, 7, 2, ent->viewheight - 3);
     P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
 
     /* This offset is the entity offset */
-    VectorSet(offset, 2, 7, -32);
+    VectorSet(offset, 2, 7, -3);
 
-    fire_heat(ent, start, forward, offset, damage, kick, qfalse);
+    fire_heat(ent, start, forward, offset, damage, kick);
+}
 
-    /* send muzzle flash */
-    gi.WriteByte(svc_muzzleflash);
-    gi.WriteShort(ent - g_edicts);
-    gi.WriteByte(MZ_PLASMABEAM | is_silenced);
-    gi.multicast(ent->s.origin, MULTICAST_PVS);
+static void weapon_plasmabeam_fire(edict_t *ent)
+{
+    int i;
+
+    if (!ent) {
+        return;
+    }
+
+    ent->client->weaponframe++;
 
     if (!DF(INFINITE_AMMO))
         ent->client->inventory[ent->client->ammo_index] -= ent->client->weapon->quantity;
 
+    memset(ent->client->game_subframe_shoots, 0, sizeof(game_subframe_shoot_t) * MAX_FRAMEDIV);
+
+    for (i = 0; i < MAX_FRAMEDIV; i++) {
+        game_subframe_shoot_t *game_subframe_shoot = &ent->client->game_subframe_shoots[i];
+
+        game_subframe_shoot->subframe_shoot_next = level.framenum + (i / 10.f / MAX_FRAMEDIV) * HZ;
+        game_subframe_shoot->subframe_shoot_func = weapon_plasmabeam_fire_subframe;
+    }
+
     ent->client->anim_priority = ANIM_ATTACK;
 
     if (ent->client->ps.pmove.pm_flags & PMF_DUCKED) {
-        ent->s.frame = FRAME_crattak1 - 1;
+        ent->client->anim_start = FRAME_crattak1 + 1 - (ent->client->weaponframe & 1);
         ent->client->anim_end = FRAME_crattak9;
     } else {
-        ent->s.frame = FRAME_attack1 - 1;
+        ent->client->anim_start = FRAME_attack1 + 1 - (ent->client->weaponframe & 1);
         ent->client->anim_end = FRAME_attack8;
     }
+
+    /* send muzzle flash */
+    gi.WriteByte(svc_muzzleflash);
+    gi.WriteShort(ent - g_edicts);
+    gi.WriteByte(MZ_HEATBEAM | is_silenced);
+    gi.multicast(ent->s.origin, MULTICAST_PVS);
 }
 
 void Weapon_PlasmaBeam(edict_t *ent)
@@ -1247,19 +1303,14 @@ void Weapon_PlasmaBeam(edict_t *ent)
     if (ent->client->weaponstate == WEAPON_FIRING) {
         ent->client->weapon_sound = gi.soundindex("weapons/bfg__l1a.wav");
 
-        if ((ent->client->inventory[ent->client->ammo_index] >= ent->client->weapon->quantity) && ((ent->client->latched_buttons | ent->client->buttons) & BUTTON_ATTACK)) {
+        if ((ent->client->inventory[ent->client->ammo_index] >= ent->client->weapon->quantity) && (ent->client->buttons & BUTTON_ATTACK)) {
             if (ent->client->weaponframe >= 13) {
                 ent->client->weaponframe = 9;
-                ent->client->ps.gunindex = gi.modelindex("models/weapons/v_beamer2/tris.md2");
-            } else {
-                ent->client->ps.gunindex = gi.modelindex("models/weapons/v_beamer2/tris.md2");
             }
         } else {
             ent->client->weaponframe = 13;
-            ent->client->ps.gunindex = gi.modelindex("models/weapons/v_beamer/tris.md2");
         }
     } else {
-        ent->client->ps.gunindex = gi.modelindex("models/weapons/v_beamer/tris.md2");
         ent->client->weapon_sound = 0;
     }
 

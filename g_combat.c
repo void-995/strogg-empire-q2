@@ -390,6 +390,10 @@ void T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir, 
         client->damage_blood += take;
         client->damage_knockback += knockback;
         VectorCopy(point, client->damage_from);
+
+        if (psave > 0 || asave > 0 || take > 0) {
+            G_Feedback_ClientHit(attacker, targ, damage);
+        }
     }
 }
 

@@ -1002,6 +1002,19 @@ void ClientEndServerFrame(edict_t *ent)
 
     G_SetStats(ent);
 
+    for (i = 0; i < MAX_FRAMEDIV; i++) {
+        game_subframe_shoot_t *game_subframe_shoot = &ent->client->game_subframe_shoots[i];
+
+        if (game_subframe_shoot->subframe_shoot_next > 0 && level.framenum >= game_subframe_shoot->subframe_shoot_next) {
+            game_subframe_shoot->subframe_shoot_func(ent);
+            game_subframe_shoot->subframe_shoot_next = 0;
+        }
+
+        if (level.framenum < game_subframe_shoot->subframe_shoot_next) {
+            break;
+        }
+    }
+
     if (!FRAMESYNC)
         return;
 
