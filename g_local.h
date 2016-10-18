@@ -808,13 +808,17 @@ void T_RadiusDamage(edict_t *inflictor, edict_t *attacker, float damage, edict_t
 #define DAMAGE_BULLET           0x00000010  // damage is from a bullet (used for ricochets)
 #define DAMAGE_NO_PROTECTION    0x00000020  // armor, shields, invulnerability, and godmode have no effect
 
-#define DEFAULT_BULLET_HSPREAD  300
-#define DEFAULT_BULLET_VSPREAD  500
-#define DEFAULT_SHOTGUN_HSPREAD 1000
-#define DEFAULT_SHOTGUN_VSPREAD 500
+#define CG_BULLET_HSPREAD                   300
+#define CG_BULLET_VSPREAD                   500
+#define MG_BULLET_HSPREAD                   120
+#define MG_BULLET_VSPREAD                   200
+#define DEFAULT_BULLET_HSPREAD              300
+#define DEFAULT_BULLET_VSPREAD              500
+#define DEFAULT_SHOTGUN_HSPREAD             1000
+#define DEFAULT_SHOTGUN_VSPREAD             500
 #define DEFAULT_DEATHMATCH_SHOTGUN_COUNT    12
-#define DEFAULT_SHOTGUN_COUNT   12
-#define DEFAULT_SSHOTGUN_COUNT  20
+#define DEFAULT_SHOTGUN_COUNT               12
+#define DEFAULT_SSHOTGUN_COUNT              20
 
 //
 // g_misc.c

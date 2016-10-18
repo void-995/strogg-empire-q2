@@ -811,7 +811,7 @@ static void weapon_machinegun_fire(edict_t *ent)
     vec3_t      start;
     vec3_t      forward, right;
     vec3_t      angles;
-    int         damage = 8;
+    int         damage = 6;
     int         kick = 2;
     vec3_t      offset;
 
@@ -850,7 +850,7 @@ static void weapon_machinegun_fire(edict_t *ent)
     VectorSet(offset, 0, 8, ent->viewheight - 8);
     P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
     G_BeginDamage();
-    fire_bullet(ent, start, forward, damage, kick, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MOD_MACHINEGUN);
+    fire_bullet(ent, start, forward, damage, kick, MG_BULLET_HSPREAD, MG_BULLET_VSPREAD, MOD_MACHINEGUN);
     G_EndDamage();
 
     gi.WriteByte(svc_muzzleflash);
@@ -892,7 +892,7 @@ void weapon_chaingun_fire_subframe(edict_t *ent)
     float       r, u;
     vec3_t      offset;
     int         damage = 7;
-    int         kick = 2;
+    int         kick = 3;
 
     if (is_quad) {
         damage *= 4;
@@ -907,7 +907,7 @@ void weapon_chaingun_fire_subframe(edict_t *ent)
     VectorSet(offset, 0, r, u + ent->viewheight - 8);
     P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
 
-    fire_bullet(ent, start, forward, damage, kick, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MOD_CHAINGUN);
+    fire_bullet(ent, start, forward, damage, kick, CG_BULLET_HSPREAD, CG_BULLET_VSPREAD, MOD_CHAINGUN);
 }
 
 static void weapon_chaingun_fire(edict_t *ent)
