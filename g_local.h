@@ -175,9 +175,9 @@ typedef enum {
     ITEM_GRENADELAUNCHER,
     ITEM_ROCKETLAUNCHER,
     ITEM_HYPERBLASTER,
-    ITEM_PLASMABEAM,
     ITEM_RAILGUN,
     ITEM_BFG,
+    ITEM_PLASMABEAM,
     ITEM_SHELLS,
     ITEM_BULLETS,
     ITEM_CELLS,
@@ -309,10 +309,9 @@ typedef struct {
 #define WEAP_GRENADELAUNCHER    7
 #define WEAP_ROCKETLAUNCHER     8
 #define WEAP_HYPERBLASTER       9
-#define WEAP_PLASMABEAM         10
-#define WEAP_RAILGUN            11
-#define WEAP_BFG                12
-
+#define WEAP_RAILGUN            10
+#define WEAP_BFG                11
+#define WEAP_PLASMABEAM         12
 #define WEAP_TOTAL              13
 
 typedef struct gitem_s {
@@ -808,8 +807,8 @@ void T_RadiusDamage(edict_t *inflictor, edict_t *attacker, float damage, edict_t
 #define DAMAGE_BULLET           0x00000010  // damage is from a bullet (used for ricochets)
 #define DAMAGE_NO_PROTECTION    0x00000020  // armor, shields, invulnerability, and godmode have no effect
 
-#define CG_BULLET_HSPREAD                   300
-#define CG_BULLET_VSPREAD                   500
+#define CG_BULLET_HSPREAD                   270
+#define CG_BULLET_VSPREAD                   450
 #define MG_BULLET_HSPREAD                   120
 #define MG_BULLET_VSPREAD                   200
 #define DEFAULT_BULLET_HSPREAD              300
@@ -1018,6 +1017,7 @@ typedef enum {
     FRAG_HYPERBLASTER,
     FRAG_RAILGUN,
     FRAG_BFG,
+    FRAG_PLASMABEAM,
     FRAG_TELEPORT,
     FRAG_WATER,
     FRAG_SLIME,
@@ -1028,12 +1028,16 @@ typedef enum {
     FRAG_TOTAL
 } frag_t;
 
+#define FRAG_WEAPON_FIRST   FRAG_BLASTER
+#define FRAG_WEAPON_LAST    FRAG_PLASMABEAM
+
 typedef struct {
     int kills;
     int deaths;
     int suicides;
     int hits;
     int atts;
+    int sub_hits;
 } fragstat_t;
 
 typedef struct {
@@ -1094,10 +1098,14 @@ typedef struct {
     flood_t     chat_flood, wave_flood, info_flood;
 } client_level_t;
 
-typedef struct game_subframe_shoot_s {
-    int     subframe_shoot_next;
-    void    (*subframe_shoot_func)(edict_t *self);
-} game_subframe_shoot_t;
+typedef struct game_subframe_shot_s {
+    int         subframe_shot_next;
+    
+    qboolean    subframe_shot_begin_damage;
+    qboolean    subframe_shot_end_damage;
+
+    void        (*subframe_shot_func)(edict_t *self);
+} game_subframe_shot_t;
 
 // this structure is cleared on each PutClientInServer(),
 // except for 'client->pers'
@@ -1203,10 +1211,13 @@ struct gclient_s {
     gitem_t     *weapon;
     gitem_t     *lastweapon;
 
+    int         next_feedback_time;
+
     int         next_health_limit_check;
     int         next_armor_limit_check;
 
-    game_subframe_shoot_t game_subframe_shoots[MAX_FRAMEDIV];
+    int game_subframe_shots_count;
+    game_subframe_shot_t game_subframe_shots[MAX_FRAMEDIV];
 };
 
 struct edict_s {

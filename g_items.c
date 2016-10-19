@@ -1498,28 +1498,6 @@ const gitem_t   g_itemlist[ITEM_TOTAL] = {
         /* precache */ "models/objects/laser/tris.md2 weapons/hyprbu1a.wav weapons/hyprbl1a.wav weapons/hyprbf1a.wav weapons/hyprbd1a.wav misc/lasfly.wav"
     },
 
-    /* QUAKED weapon_plasmabeam (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN */
-    {
-        "weapon_plasmabeam",
-        Pickup_Weapon,
-        Use_Weapon,
-        Drop_Weapon,
-        Weapon_PlasmaBeam,
-        "misc/w_pkup.wav",
-        "models/weapons/g_beamer/tris.md2", EF_ROTATE,
-        "models/weapons/v_beamer/tris.md2",
-        "w_heatbeam", /* icon */
-        "Plasma Beam", /* pickup */
-        0,
-        2,
-        "Cells",
-        IT_WEAPON,
-        WEAP_PLASMABEAM,
-        NULL,
-        0,
-        "models/weapons/v_beamer2/tris.md2 weapons/bfg__l1a.wav",
-    },
-
     /*QUAKED weapon_railgun (.3 .3 1) (-16 -16 -16) (16 16 16)
     */
     {
@@ -1564,6 +1542,28 @@ const gitem_t   g_itemlist[ITEM_TOTAL] = {
         NULL,
         0,
         /* precache */ "sprites/s_bfg1.sp2 sprites/s_bfg2.sp2 sprites/s_bfg3.sp2 weapons/bfg__f1y.wav weapons/bfg__l1a.wav weapons/bfg__x1b.wav weapons/bfg_hum.wav"
+    },
+
+    /* QUAKED weapon_plasmabeam (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN */
+    {
+        "weapon_plasmabeam",
+        Pickup_Weapon,
+        Use_Weapon,
+        Drop_Weapon,
+        Weapon_PlasmaBeam,
+        "misc/w_pkup.wav",
+        "models/weapons/g_beamer/tris.md2", EF_ROTATE,
+        "models/weapons/v_beamer/tris.md2",
+        "w_heatbeam", /* icon */
+        "Plasma Beam", /* pickup */
+        0,
+        1,
+        "Cells",
+        IT_WEAPON,
+        WEAP_PLASMABEAM,
+        NULL,
+        0,
+        "models/weapons/v_beamer2/tris.md2 weapons/bfg__l1a.wav",
     },
 
     //

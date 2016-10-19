@@ -69,15 +69,19 @@ void G_Feedback_Init()
 
 void G_Feedback_ClientHit(edict_t *attacker, edict_t *victim, int damage_given)
 {
-		if (attacker->client && victim->client && attacker != victim) {
-		if (damage_given < 25) {
-			gi.sound(attacker, CHAN_FEEDBACK, gi.soundindex("misc/hit_3.wav"), 1.f, ATTN_STATIC, 0);
-		} else if (damage_given < 50) {
-			gi.sound(attacker, CHAN_FEEDBACK, gi.soundindex("misc/hit_2.wav"), 1.f, ATTN_STATIC, 0);
-		} else if (damage_given < 75) {
-			gi.sound(attacker, CHAN_FEEDBACK, gi.soundindex("misc/hit_1.wav"), 1.f, ATTN_STATIC, 0);
-		} else {
-			gi.sound(attacker, CHAN_FEEDBACK, gi.soundindex("misc/hit_0.wav"), 1.f, ATTN_STATIC, 0);
+	if (attacker->client && victim->client && attacker != victim) {
+		if (level.framenum >= attacker->client->next_feedback_time) {
+			if (damage_given < 25) {
+				gi.sound(attacker, CHAN_FEEDBACK, gi.soundindex("misc/hit_3.wav"), 1.f, ATTN_STATIC, 0);
+			} else if (damage_given < 50) {
+				gi.sound(attacker, CHAN_FEEDBACK, gi.soundindex("misc/hit_2.wav"), 1.f, ATTN_STATIC, 0);
+			} else if (damage_given < 75) {
+				gi.sound(attacker, CHAN_FEEDBACK, gi.soundindex("misc/hit_1.wav"), 1.f, ATTN_STATIC, 0);
+			} else {
+				gi.sound(attacker, CHAN_FEEDBACK, gi.soundindex("misc/hit_0.wav"), 1.f, ATTN_STATIC, 0);
+			}
+
+			attacker->client->next_feedback_time = level.framenum + 0.03125f * HZ;
 		}
 	}
 }

@@ -103,7 +103,7 @@ static void G_BotRunFrame(edict_t *self)
 			G_BotCheatWeapons(self);
 
 			if (random() < 0.125f) {
-				G_BotUseWeapon(self, floor(random() * (WEAP_BFG - 2)) + 2);
+				G_BotUseWeapon(self, floor(random() * (WEAP_BFG - 1)) + 1);
 			}
 
 			if (random() < 0.25f) {

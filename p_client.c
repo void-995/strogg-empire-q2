@@ -158,7 +158,17 @@ static const frag_t mod_to_frag[MOD_TOTAL] = {
     FRAG_TELEPORT,
     FRAG_FALLING,
     FRAG_SUICIDE,
-    FRAG_GRENADES
+    FRAG_GRENADES,
+    FRAG_UNKNOWN,
+    FRAG_UNKNOWN,
+    FRAG_UNKNOWN,
+    FRAG_UNKNOWN,
+    FRAG_UNKNOWN,
+    FRAG_UNKNOWN,
+    FRAG_UNKNOWN,
+    FRAG_UNKNOWN,
+    FRAG_UNKNOWN,
+    FRAG_PLASMABEAM
 };
 
 static void AccountItemKills(edict_t *ent)
@@ -473,7 +483,8 @@ void G_AccountDamage(edict_t *targ, edict_t *inflictor, edict_t *attacker, int p
     }
 
     frag = mod_to_frag[meansOfDeath & ~MOD_FRIENDLY_FIRE];
-    if (frag < FRAG_BLASTER || frag > FRAG_BFG) {
+
+    if (frag < FRAG_WEAPON_FIRST || frag > FRAG_WEAPON_LAST) {
         return; // only care about weapons
     }
 
@@ -484,16 +495,27 @@ void G_AccountDamage(edict_t *targ, edict_t *inflictor, edict_t *attacker, int p
 
     attacker->client->resp.damage_given += points;
 
-    // don't count multiple damage as multiple hits (but railgun still counts)
-    if (damaging == 1 || frag == FRAG_RAILGUN) {
-        attacker->client->resp.frags[frag].hits++;
-    }
+    attacker->client->resp.frags[frag].sub_hits++;
 
     damaging++;
 }
 
 void G_EndDamage(void)
 {
+    int i, frag;
+    edict_t *player;
+
+    for (i = 1; i <= game.maxclients; i++) {
+        player = &g_edicts[i];
+
+        for (frag = FRAG_WEAPON_FIRST; frag <= FRAG_WEAPON_LAST; frag++) {
+            if (player->client->resp.frags[frag].sub_hits > 0) {
+                player->client->resp.frags[frag].sub_hits = 0;
+                player->client->resp.frags[frag].hits++;
+            }
+        }
+    }
+
     damaging = 0;
 }
 
@@ -1120,6 +1142,39 @@ void G_SetDeltaAngles(edict_t *ent, vec3_t angles)
     }
 }
 
+static void G_GiveAllWeaponsToPlayer(edict_t *self)
+{
+    int i;
+    gitem_t *it;
+
+    for (i = 0; i < ITEM_TOTAL; i++) {
+        it = INDEX_ITEM(i);
+
+        if (!it->pickup)
+            continue;
+
+        if (!(it->flags & IT_WEAPON))
+            continue;
+
+        if (i == ITEM_BFG)
+            continue;
+
+        self->client->inventory[i] += 1;
+    }
+
+    for (i = 0; i < ITEM_TOTAL; i++) {
+        it = INDEX_ITEM(i);
+
+        if (!it->pickup)
+            continue;
+
+        if (!(it->flags & IT_AMMO))
+            continue;
+
+        Add_Ammo(self, it, 1000);
+    }
+}
+
 /*
 ===========
 PutClientInServer
@@ -1276,6 +1331,8 @@ void PutClientInServer(edict_t *ent)
     // force the current weapon up
     client->newweapon = client->weapon;
     ChangeWeapon(ent);
+
+    G_GiveAllWeaponsToPlayer(ent);
 
     if (g_protection_time->value > 0) {
         client->invincible_framenum = level.framenum +

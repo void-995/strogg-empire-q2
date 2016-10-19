@@ -763,7 +763,7 @@ void fire_beams(edict_t *self, vec3_t start, vec3_t aimdir, vec3_t offset, int d
         return;
     }
 
-    beam_range = te_beam == TE_HEATBEAM ? PLASMABEAM_RANGE : 8192.f;
+    beam_range = te_beam == TE_HEATBEAM ? PLASMABEAM_RANGE : 8192;
 
     vectoangles(aimdir, dir);
     AngleVectors(dir, forward, right, up);

@@ -932,10 +932,11 @@ and right after spawning
 */
 void ClientEndServerFrame(edict_t *ent)
 {
-    int     i;
+    int i;
+    int game_subframe_shots_count;
 
     current_player = ent;
-    current_client = ent->client;
+    current_client = current_player->client;
 
     //
     // If the origin or velocity have changed since ClientThink(),
@@ -946,11 +947,11 @@ void ClientEndServerFrame(edict_t *ent)
     // behind the body position when pushed -- "sinking into plats"
     //
     for (i = 0; i < 3; i++) {
-        ent->client->ps.pmove.origin[i] = ent->s.origin[i] * 8.0;
-        ent->client->ps.pmove.velocity[i] = ent->velocity[i] * 8.0;
+        current_client->ps.pmove.origin[i] = current_player->s.origin[i] * 8.0;
+        current_client->ps.pmove.velocity[i] = current_player->velocity[i] * 8.0;
     }
 
-    AngleVectors(ent->client->v_angle, forward, right, up);
+    AngleVectors(current_client->v_angle, forward, right, up);
 
     // burn from lava, etc
     P_WorldEffects();
@@ -959,70 +960,87 @@ void ClientEndServerFrame(edict_t *ent)
     // set model angles from view angles so other things in
     // the world can tell which direction you are looking
     //
-    if (ent->client->v_angle[PITCH] > 180)
-        ent->s.angles[PITCH] = (-360 + ent->client->v_angle[PITCH]) / 3;
+    if (current_client->v_angle[PITCH] > 180)
+        current_player->s.angles[PITCH] = (-360 + current_client->v_angle[PITCH]) / 3;
     else
-        ent->s.angles[PITCH] = ent->client->v_angle[PITCH] / 3;
-    ent->s.angles[YAW] = ent->client->v_angle[YAW];
-    ent->s.angles[ROLL] = 0;
-    ent->s.angles[ROLL] = P_CalcRoll(ent->s.angles, ent->velocity) * 4;
+        current_player->s.angles[PITCH] = current_client->v_angle[PITCH] / 3;
+    current_player->s.angles[YAW] = current_client->v_angle[YAW];
+    current_player->s.angles[ROLL] = 0;
+    current_player->s.angles[ROLL] = P_CalcRoll(current_player->s.angles, current_player->velocity) * 4;
 
     //
     // calculate speed and cycle to be used for
     // all cyclic walking effects
     //
-    P_CalcBob(ent);
+    P_CalcBob(current_player);
 
     // detect hitting the floor
-    P_FallingDamage(ent);
+    P_FallingDamage(current_player);
 
     // apply all the damage taken this frame
-    P_DamageFeedback(ent);
+    P_DamageFeedback(current_player);
 
     // determine the view offsets
-    P_CalcViewOffset(ent);
+    P_CalcViewOffset(current_player);
 
     // determine the gun offsets
-    P_CalcGunOffset(ent);
+    P_CalcGunOffset(current_player);
 
     // determine the full screen color blend
     // must be after viewoffset, so eye contents can be
     // accurately determined
     // FIXME: with client prediction, the contents
     // should be determined by the client
-    P_CalcBlend(ent);
+    P_CalcBlend(current_player);
 
-    P_SetEvent(ent);
+    P_SetEvent(current_player);
 
-    P_SetEffects(ent);
+    P_SetEffects(current_player);
 
-    P_SetSound(ent);
+    P_SetSound(current_player);
 
-    P_SetFrame(ent);
+    P_SetFrame(current_player);
 
-    G_SetStats(ent);
+    G_SetStats(current_player);
 
-    for (i = 0; i < MAX_FRAMEDIV; i++) {
-        game_subframe_shoot_t *game_subframe_shoot = &ent->client->game_subframe_shoots[i];
+    game_subframe_shots_count = current_client->game_subframe_shots_count;
 
-        if (game_subframe_shoot->subframe_shoot_next > 0 && level.framenum >= game_subframe_shoot->subframe_shoot_next) {
-            game_subframe_shoot->subframe_shoot_func(ent);
-            game_subframe_shoot->subframe_shoot_next = 0;
+    if (game_subframe_shots_count > 0) {
+        for (i = 0; i < game_subframe_shots_count; i++) {
+            game_subframe_shot_t *game_subframe_shot = &current_client->game_subframe_shots[i];
+
+            if (game_subframe_shot->subframe_shot_next > 0 && level.framenum >= game_subframe_shot->subframe_shot_next) {
+                if (game_subframe_shot->subframe_shot_begin_damage) {
+                    G_BeginDamage();
+                }
+
+                game_subframe_shot->subframe_shot_func(current_player);
+                game_subframe_shot->subframe_shot_next = 0;
+
+                if (game_subframe_shot->subframe_shot_begin_damage) {
+                    G_EndDamage();
+                }
+            }
+
+            if (level.framenum < game_subframe_shot->subframe_shot_next) {
+                break;
+            }
         }
 
-        if (level.framenum < game_subframe_shoot->subframe_shoot_next) {
-            break;
+        if (i == game_subframe_shots_count) {
+            current_client->game_subframe_shots_count = 0;
+            G_EndDamage();
         }
     }
 
     if (!FRAMESYNC)
         return;
 
-    VectorCopy(ent->velocity, ent->client->oldvelocity);
-    VectorCopy(ent->client->ps.viewangles, ent->client->oldviewangles);
+    VectorCopy(current_player->velocity, current_client->oldvelocity);
+    VectorCopy(current_client->ps.viewangles, current_client->oldviewangles);
 
     // clear weapon kicks
-    VectorClear(ent->client->kick_origin);
-    VectorClear(ent->client->kick_angles);
+    VectorClear(current_client->kick_origin);
+    VectorClear(current_client->kick_angles);
 }
 

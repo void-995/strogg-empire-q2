@@ -1054,7 +1054,8 @@ static void Cmd_Join_f(edict_t *ent)
 static const char weapnames[WEAP_TOTAL][12] = {
     "None",         "Blaster",      "Shotgun",      "S.Shotgun",
     "Machinegun",   "Chaingun",     "Grenades",     "G.Launcher",
-    "R.Launcher",   "H.Blaster",    "Railgun",      "BFG10K"
+    "R.Launcher",   "H.Blaster",    "Railgun",      "BFG10K",
+    "P.Beam"
 };
 
 void Cmd_Stats_f(edict_t *ent, qboolean check_other)
@@ -1087,13 +1088,13 @@ void Cmd_Stats_f(edict_t *ent, qboolean check_other)
         other = ent;
     }
 
-    for (i = FRAG_BLASTER; i <= FRAG_BFG; i++) {
+    for (i = FRAG_WEAPON_FIRST; i <= FRAG_WEAPON_LAST; i++) {
         s = &other->client->resp.frags[i];
         if (s->atts || s->deaths) {
             break;
         }
     }
-    if (i > FRAG_BFG) {
+    if (i > FRAG_WEAPON_LAST) {
         gi.cprintf(ent, PRINT_HIGH, "No accuracy stats available for %s.\n",
                    other->client->pers.netname);
         return;
@@ -1105,7 +1106,7 @@ void Cmd_Stats_f(edict_t *ent, qboolean check_other)
                "---------- ---- --------- ---- ----\n",
                other->client->pers.netname);
 
-    for (i = FRAG_BLASTER; i <= FRAG_BFG; i++) {
+    for (i = FRAG_WEAPON_FIRST; i <= FRAG_WEAPON_LAST; i++) {
         s = &other->client->resp.frags[i];
         if (!s->atts && !s->deaths) {
             continue;

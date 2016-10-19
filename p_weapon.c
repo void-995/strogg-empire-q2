@@ -914,12 +914,6 @@ static void weapon_chaingun_fire(edict_t *ent)
 {
     int         i;
     int         shots;
-    // vec3_t      start;
-    // vec3_t      forward, right, up;
-    // float       r, u;
-    // vec3_t      offset;
-    // int         damage = 6;
-    // int         kick = 2;
 
     if (ent->client->weaponframe == 5)
         gi.sound(ent, CHAN_AUTO, gi.soundindex("weapons/chngnu1a.wav"), 1, ATTN_IDLE, 0);
@@ -969,41 +963,23 @@ static void weapon_chaingun_fire(edict_t *ent)
         return;
     }
 
-    /*
-    if (is_quad) {
-        damage *= 4;
-        kick *= 4;
-    }
-    */
-
     for (i = 0; i < 3; i++) {
         ent->client->kick_origin[i] = crandom() * 0.35;
         ent->client->kick_angles[i] = crandom() * 0.7;
     }
 
-    memset(ent->client->game_subframe_shoots, 0, sizeof(game_subframe_shoot_t) * MAX_FRAMEDIV);
+    memset(ent->client->game_subframe_shots, 0, sizeof(game_subframe_shot_t) * MAX_FRAMEDIV);
 
     for (i = 0; i < shots; i++) {
-        game_subframe_shoot_t *game_subframe_shoot = &ent->client->game_subframe_shoots[i];
+        game_subframe_shot_t *game_subframe_shot = &ent->client->game_subframe_shots[i];
 
-        game_subframe_shoot->subframe_shoot_next = level.framenum + (i / 10.f / shots) * HZ;
-        game_subframe_shoot->subframe_shoot_func = weapon_chaingun_fire_subframe;
+        game_subframe_shot->subframe_shot_begin_damage = qtrue;
+        game_subframe_shot->subframe_shot_end_damage = qtrue;
+        game_subframe_shot->subframe_shot_next = level.framenum + (i / 10.f / shots) * HZ;
+        game_subframe_shot->subframe_shot_func = weapon_chaingun_fire_subframe;
     }
 
-    /*
-    G_BeginDamage();
-    for (i = 0; i < shots; i++) {
-        // get start / end positions
-        AngleVectors(ent->client->v_angle, forward, right, up);
-        r = 7 + crandom() * 4;
-        u = crandom() * 4;
-        VectorSet(offset, 0, r, u + ent->viewheight - 8);
-        P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
-
-        fire_bullet(ent, start, forward, damage, kick, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MOD_CHAINGUN);
-    }
-    G_EndDamage();
-    */
+    ent->client->game_subframe_shots_count = shots;
 
     // send muzzle flash
     gi.WriteByte(svc_muzzleflash);
@@ -1018,7 +994,7 @@ static void weapon_chaingun_fire(edict_t *ent)
     if (!DF(INFINITE_AMMO))
         ent->client->inventory[ent->client->ammo_index] -= shots;
 
-    ent->client->resp.frags[FRAG_CHAINGUN].atts++;
+    ent->client->resp.frags[FRAG_CHAINGUN].atts += shots;
 }
 
 
@@ -1228,8 +1204,8 @@ void weapon_plasmabeam_fire_subframe(edict_t *ent)
         return;
     }
 
-    damage = 2;
-    kick = 4;
+    damage = 3;
+    kick = 6;
 
     if (is_quad) {
         damage *= 4;
@@ -1254,7 +1230,7 @@ void weapon_plasmabeam_fire_subframe(edict_t *ent)
 
 static void weapon_plasmabeam_fire(edict_t *ent)
 {
-    int i;
+    int i, shots;
 
     if (!ent) {
         return;
@@ -1262,17 +1238,27 @@ static void weapon_plasmabeam_fire(edict_t *ent)
 
     ent->client->weaponframe++;
 
+    shots = ent->client->inventory[ent->client->ammo_index] >= 2 ? 2 : 1;
+
     if (!DF(INFINITE_AMMO))
-        ent->client->inventory[ent->client->ammo_index] -= ent->client->weapon->quantity;
+        ent->client->inventory[ent->client->ammo_index] -= shots;
 
-    memset(ent->client->game_subframe_shoots, 0, sizeof(game_subframe_shoot_t) * MAX_FRAMEDIV);
+    ent->client->resp.frags[FRAG_PLASMABEAM].atts += shots;
 
-    for (i = 0; i < MAX_FRAMEDIV; i++) {
-        game_subframe_shoot_t *game_subframe_shoot = &ent->client->game_subframe_shoots[i];
+    shots *= 2;
 
-        game_subframe_shoot->subframe_shoot_next = level.framenum + (i / 10.f / MAX_FRAMEDIV) * HZ;
-        game_subframe_shoot->subframe_shoot_func = weapon_plasmabeam_fire_subframe;
+    memset(ent->client->game_subframe_shots, 0, sizeof(game_subframe_shot_t) * MAX_FRAMEDIV);
+
+    for (i = 0; i < shots; i++) {
+        game_subframe_shot_t *game_subframe_shot = &ent->client->game_subframe_shots[i];
+
+        game_subframe_shot->subframe_shot_begin_damage = i % 2 == 0;
+        game_subframe_shot->subframe_shot_end_damage = i % 2 == 1;
+        game_subframe_shot->subframe_shot_next = level.framenum + (i / 40.f) * HZ;
+        game_subframe_shot->subframe_shot_func = weapon_plasmabeam_fire_subframe;
     }
+
+    ent->client->game_subframe_shots_count = shots;
 
     ent->client->anim_priority = ANIM_ATTACK;
 
@@ -1303,7 +1289,7 @@ void Weapon_PlasmaBeam(edict_t *ent)
     if (ent->client->weaponstate == WEAPON_FIRING) {
         ent->client->weapon_sound = gi.soundindex("weapons/bfg__l1a.wav");
 
-        if ((ent->client->inventory[ent->client->ammo_index] >= ent->client->weapon->quantity) && (ent->client->buttons & BUTTON_ATTACK)) {
+        if (ent->client->inventory[ent->client->ammo_index] && (ent->client->buttons & BUTTON_ATTACK)) {
             if (ent->client->weaponframe >= 13) {
                 ent->client->weaponframe = 9;
             }
