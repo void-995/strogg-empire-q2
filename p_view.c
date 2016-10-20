@@ -1010,16 +1010,8 @@ void ClientEndServerFrame(edict_t *ent)
             game_subframe_shot_t *game_subframe_shot = &current_client->game_subframe_shots[i];
 
             if (game_subframe_shot->subframe_shot_next > 0 && level.framenum >= game_subframe_shot->subframe_shot_next) {
-                if (game_subframe_shot->subframe_shot_begin_damage) {
-                    G_BeginDamage();
-                }
-
                 game_subframe_shot->subframe_shot_func(current_player);
                 game_subframe_shot->subframe_shot_next = 0;
-
-                if (game_subframe_shot->subframe_shot_begin_damage) {
-                    G_EndDamage();
-                }
             }
 
             if (level.framenum < game_subframe_shot->subframe_shot_next) {
@@ -1029,7 +1021,6 @@ void ClientEndServerFrame(edict_t *ent)
 
         if (i == game_subframe_shots_count) {
             current_client->game_subframe_shots_count = 0;
-            G_EndDamage();
         }
     }
 

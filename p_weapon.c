@@ -907,7 +907,9 @@ void weapon_chaingun_fire_subframe(edict_t *ent)
     VectorSet(offset, 0, r, u + ent->viewheight - 8);
     P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
 
+    G_BeginDamage();
     fire_bullet(ent, start, forward, damage, kick, CG_BULLET_HSPREAD, CG_BULLET_VSPREAD, MOD_CHAINGUN);
+    G_EndDamage();
 }
 
 static void weapon_chaingun_fire(edict_t *ent)
@@ -972,9 +974,6 @@ static void weapon_chaingun_fire(edict_t *ent)
 
     for (i = 0; i < shots; i++) {
         game_subframe_shot_t *game_subframe_shot = &ent->client->game_subframe_shots[i];
-
-        game_subframe_shot->subframe_shot_begin_damage = qtrue;
-        game_subframe_shot->subframe_shot_end_damage = qtrue;
         game_subframe_shot->subframe_shot_next = level.framenum + (i / 10.f / shots) * HZ;
         game_subframe_shot->subframe_shot_func = weapon_chaingun_fire_subframe;
     }
@@ -1190,6 +1189,10 @@ void Weapon_Railgun(edict_t *ent)
     Weapon_Generic(ent, 3, 18, 56, 61, pause_frames, fire_frames, weapon_railgun_fire);
 }
 
+#define PLASMABEAM_DAMAGE   4
+#define PLASMABEAM_KICK     6
+#define PLASMABEAM_SUBSHOTS 2
+
 void fire_heat(edict_t *self, vec3_t start, vec3_t aimdir, vec3_t offset, int damage, int kick);
 
 void weapon_plasmabeam_fire_subframe(edict_t *ent)
@@ -1204,8 +1207,8 @@ void weapon_plasmabeam_fire_subframe(edict_t *ent)
         return;
     }
 
-    damage = 3;
-    kick = 6;
+    damage = PLASMABEAM_DAMAGE;
+    kick = PLASMABEAM_KICK;
 
     if (is_quad) {
         damage *= 4;
@@ -1225,7 +1228,9 @@ void weapon_plasmabeam_fire_subframe(edict_t *ent)
     /* This offset is the entity offset */
     VectorSet(offset, 2, 7, -3);
 
+    G_BeginDamage();
     fire_heat(ent, start, forward, offset, damage, kick);
+    G_EndDamage();
 }
 
 static void weapon_plasmabeam_fire(edict_t *ent)
@@ -1243,18 +1248,15 @@ static void weapon_plasmabeam_fire(edict_t *ent)
     if (!DF(INFINITE_AMMO))
         ent->client->inventory[ent->client->ammo_index] -= shots;
 
-    ent->client->resp.frags[FRAG_PLASMABEAM].atts += shots;
+    shots *= PLASMABEAM_SUBSHOTS;
 
-    shots *= 2;
+    ent->client->resp.frags[FRAG_PLASMABEAM].atts += shots;
 
     memset(ent->client->game_subframe_shots, 0, sizeof(game_subframe_shot_t) * MAX_FRAMEDIV);
 
     for (i = 0; i < shots; i++) {
         game_subframe_shot_t *game_subframe_shot = &ent->client->game_subframe_shots[i];
-
-        game_subframe_shot->subframe_shot_begin_damage = i % 2 == 0;
-        game_subframe_shot->subframe_shot_end_damage = i % 2 == 1;
-        game_subframe_shot->subframe_shot_next = level.framenum + (i / 40.f) * HZ;
+        game_subframe_shot->subframe_shot_next = level.framenum + (i / 20.f / PLASMABEAM_SUBSHOTS) * HZ;
         game_subframe_shot->subframe_shot_func = weapon_plasmabeam_fire_subframe;
     }
 

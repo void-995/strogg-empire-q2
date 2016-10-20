@@ -81,7 +81,7 @@ void G_Feedback_ClientHit(edict_t *attacker, edict_t *victim, int damage_given)
 				gi.sound(attacker, CHAN_FEEDBACK, gi.soundindex("misc/hit_0.wav"), 1.f, ATTN_STATIC, 0);
 			}
 
-			attacker->client->next_feedback_time = level.framenum + 0.03125f * HZ;
+			attacker->client->next_feedback_time = level.framenum + 0.025f * HZ;
 		}
 	}
 }

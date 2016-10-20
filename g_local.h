@@ -1100,10 +1100,6 @@ typedef struct {
 
 typedef struct game_subframe_shot_s {
     int         subframe_shot_next;
-    
-    qboolean    subframe_shot_begin_damage;
-    qboolean    subframe_shot_end_damage;
-
     void        (*subframe_shot_func)(edict_t *self);
 } game_subframe_shot_t;
 
