@@ -1243,10 +1243,10 @@ void PutClientInServer(edict_t *ent)
     ent->client = &game.clients[index];
     ent->takedamage = DAMAGE_AIM;
     ent->movetype = MOVETYPE_WALK;
-    ent->viewheight = 22;
+    ent->viewheight = 26;
     ent->inuse = qtrue;
     ent->classname = "player";
-    ent->mass = 200;
+    ent->mass = 95;
     ent->solid = SOLID_BBOX;
     ent->deadflag = DEAD_NO;
     ent->air_finished_framenum = level.framenum + 12 * HZ;

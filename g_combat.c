@@ -299,15 +299,21 @@ void T_Damage(edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir, 
             float   mass;
             float push;
 
-            if (targ->mass < 50)
+            if (targ->mass < 50) {
                 mass = 50;
-            else
+            } else {
                 mass = targ->mass;
+            }
 
-            if (targ->client  && attacker == targ)
+            if (targ->client) {
+                mass = 200;
+            }
+
+            if (targ->client  && attacker == targ) {
                 push = 1600.0f * ((float)knockback / mass);
-            else
+            } else {
                 push = 500.0f * ((float)knockback / mass);
+            }
 
             VectorMA(targ->velocity, push, dir, targ->velocity);
         }
