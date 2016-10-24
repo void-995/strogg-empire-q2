@@ -1849,6 +1849,12 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
         pm.trace = PM_trace;  // adds default parms
         pm.pointcontents = gi.pointcontents;
 
+        if (pm.s.pm_type == PM_NORMAL) {
+            if (pm.s.velocity[PLANE_Z] < 10) {
+                pm.s.pm_flags &= ~PMF_JUMP_HELD;
+            }
+        }
+
         // perform a pmove
         gi.Pmove(&pm);
 
