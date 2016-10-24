@@ -272,22 +272,34 @@ static void P_CalcViewOffset(edict_t *ent)
         // add angles based on velocity
 
         delta = DotProduct(ent->velocity, forward);
+        clamp(delta, -300, 300);
+
         angles[PITCH] += delta * run_pitch->value;
 
         delta = DotProduct(ent->velocity, right);
+        clamp(delta, -300, 300);
+
         angles[ROLL] += delta * run_roll->value;
 
         // add angles based on bob
 
         delta = bobfracsin * bob_pitch->value * xyspeed;
         if (ent->client->ps.pmove.pm_flags & PMF_DUCKED)
-            delta *= 6;     // crouching
+            delta *= 3;     // crouching
+
+        clamp(delta, -300, 300);
+
         angles[PITCH] += delta;
+
         delta = bobfracsin * bob_roll->value * xyspeed;
         if (ent->client->ps.pmove.pm_flags & PMF_DUCKED)
-            delta *= 6;     // crouching
+            delta *= 3;     // crouching
+
+        clamp(delta, -300, 300);
+
         if (bobcycle & 1)
             delta = -delta;
+
         angles[ROLL] += delta;
     }
 
@@ -905,8 +917,10 @@ static void P_CalcBob(edict_t *ent)
 
     bobtime = (current_client->bobtime += bobmove);
 
+    /*
     if (current_client->ps.pmove.pm_flags & PMF_DUCKED)
-        bobtime *= 4;
+        bobtime *= 2;
+    */
 
     bobcycle = (int)bobtime;
     bobfracsin = fabs(sin(bobtime * M_PI));

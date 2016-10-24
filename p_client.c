@@ -1243,10 +1243,10 @@ void PutClientInServer(edict_t *ent)
     ent->client = &game.clients[index];
     ent->takedamage = DAMAGE_AIM;
     ent->movetype = MOVETYPE_WALK;
-    ent->viewheight = 26;
+    ent->viewheight = 28;
     ent->inuse = qtrue;
     ent->classname = "player";
-    ent->mass = 95;
+    ent->mass = 90;
     ent->solid = SOLID_BBOX;
     ent->deadflag = DEAD_NO;
     ent->air_finished_framenum = level.framenum + 12 * HZ;
@@ -1793,6 +1793,9 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
     pmove_t pm;
     vec3_t start;
 
+    float current_speed, speed_before_crouching;
+    vec3_t forward, right, slide_direction;
+
     level.current_entity = ent;
     client = ent->client;
 
@@ -1855,6 +1858,19 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
             }
         }
 
+        speed_before_crouching = 0;
+        current_speed = VectorLength(ent->velocity);
+
+        if ((pm.s.pm_flags & PMF_DUCKED) && current_speed > 300) {
+            speed_before_crouching = current_speed;
+
+            if ((level.framenum - client->last_crouch_slide_frame) > (2 * HZ + FRAMEDIV)) {
+                client->last_crouch_slide_frame = level.framenum;
+            }
+        } else {
+            client->last_crouch_slide_frame = 0;
+        }
+
         // perform a pmove
         gi.Pmove(&pm);
 
@@ -1865,6 +1881,22 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
         for (i = 0; i < 3; i++) {
             ent->s.origin[i] = pm.s.origin[i] * 0.125;
             ent->velocity[i] = pm.s.velocity[i] * 0.125;
+        }
+
+        if ((pm.s.pm_flags & PMF_DUCKED) && (level.framenum - client->last_crouch_slide_frame) < (2 * HZ)) {
+            AngleVectors(ent->s.angles, forward, right, NULL);
+
+            VectorScale(forward, ucmd->forwardmove, forward);
+            VectorScale(right, ucmd->sidemove, right);
+
+            VectorAdd(forward, right, slide_direction);
+            VectorNormalize(slide_direction);
+
+            VectorScale(ent->velocity, 1.25, ent->velocity);
+            VectorAdd(ent->velocity, slide_direction, slide_direction);
+            VectorNormalize(slide_direction);
+
+            VectorScale(slide_direction, speed_before_crouching, ent->velocity);
         }
 
         VectorCopy(pm.mins, ent->mins);
