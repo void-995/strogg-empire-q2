@@ -330,6 +330,8 @@ static void Grenade_Touch(edict_t *ent, edict_t *other, cplane_t *plane, csurfac
     }
 
     if (!other->takedamage) {
+        float dot, speed;
+
         if (ent->spawnflags & 1) {
             if (random() > 0.5)
                 gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/hgrenb1a.wav"), 1, ATTN_NORM, 0);
@@ -338,6 +340,17 @@ static void Grenade_Touch(edict_t *ent, edict_t *other, cplane_t *plane, csurfac
         } else {
             gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/grenlb1b.wav"), 1, ATTN_NORM, 0);
         }
+
+        dot = DotProduct(ent->velocity, plane->normal);
+        VectorScale(ent->velocity, 0.75f, ent->velocity);
+        VectorMA(ent->velocity, dot, plane->normal, ent->velocity);
+
+        speed = VectorLength(ent->velocity);
+
+        if (speed < 10.f || fabs(dot) < 0.0625f) {
+            VectorClear(ent->velocity);
+        }
+
         return;
     }
 

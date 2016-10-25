@@ -576,6 +576,8 @@ GRENADE LAUNCHER
 ======================================================================
 */
 
+#define GLAUNCHER_GRENADE_SPEED 640
+
 static void weapon_grenadelauncher_fire(edict_t *ent)
 {
     vec3_t  offset;
@@ -595,7 +597,7 @@ static void weapon_grenadelauncher_fire(edict_t *ent)
     VectorScale(forward, -2, ent->client->kick_origin);
     ent->client->kick_angles[0] = -1;
 
-    fire_grenade(ent, start, forward, damage, 600, 2.5 * HZ, radius);
+    fire_grenade(ent, start, forward, damage, GLAUNCHER_GRENADE_SPEED, 2.5 * HZ, radius);
 
     gi.WriteByte(svc_muzzleflash);
     gi.WriteShort(ent - g_edicts);
@@ -630,6 +632,8 @@ ROCKET
 ======================================================================
 */
 
+#define ROCKET_SPEED 750
+
 static void weapon_rocketlauncher_fire(edict_t *ent)
 {
     vec3_t  offset, start;
@@ -653,7 +657,7 @@ static void weapon_rocketlauncher_fire(edict_t *ent)
 
     VectorSet(offset, 8, 8, ent->viewheight - 8);
     P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
-    fire_rocket(ent, start, forward, damage, 650, damage_radius, radius_damage);
+    fire_rocket(ent, start, forward, damage, ROCKET_SPEED, damage_radius, radius_damage);
 
     // send muzzle flash
     gi.WriteByte(svc_muzzleflash);
@@ -690,6 +694,8 @@ BLASTER / HYPERBLASTER
 ======================================================================
 */
 
+#define BLASTER_SPEED 1400
+
 static void blaster_fire(edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, int effect)
 {
     vec3_t  forward, right;
@@ -706,7 +712,7 @@ static void blaster_fire(edict_t *ent, vec3_t g_offset, int damage, qboolean hyp
     VectorScale(forward, -2, ent->client->kick_origin);
     ent->client->kick_angles[0] = -1;
 
-    fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
+    fire_blaster(ent, start, forward, damage, BLASTER_SPEED, effect, hyper);
 
     // send muzzle flash
     gi.WriteByte(svc_muzzleflash);
