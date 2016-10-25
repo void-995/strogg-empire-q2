@@ -1859,16 +1859,21 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
         }
 
         speed_before_crouching = 0;
-        current_speed = VectorLength(ent->velocity);
 
-        if ((pm.s.pm_flags & PMF_DUCKED) && current_speed > 300) {
-            speed_before_crouching = current_speed;
+        if (pm.s.pm_type == PM_NORMAL) {
+            current_speed = VectorLength(ent->velocity);
 
-            if ((level.framenum - client->last_crouch_slide_frame) > (2 * HZ + FRAMEDIV)) {
-                client->last_crouch_slide_frame = level.framenum;
+            if (pm.s.pm_flags & PMF_DUCKED) {
+                if (current_speed > 300) {
+                    speed_before_crouching = current_speed;
+
+                    if (level.framenum - client->last_crouch_slide_frame > 1.5 * HZ + FRAMEDIV) {
+                        client->last_crouch_slide_frame = level.framenum;
+                    }
+                }
+            } else {
+                client->last_crouch_slide_frame = 0;
             }
-        } else {
-            client->last_crouch_slide_frame = 0;
         }
 
         // perform a pmove
@@ -1883,20 +1888,23 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
             ent->velocity[i] = pm.s.velocity[i] * 0.125;
         }
 
-        if ((pm.s.pm_flags & PMF_DUCKED) && (level.framenum - client->last_crouch_slide_frame) < (2 * HZ)) {
-            AngleVectors(ent->s.angles, forward, right, NULL);
+        if (pm.s.pm_type == PM_NORMAL) {
+            if (pm.s.pm_flags & PMF_DUCKED) {
+                if (level.framenum - client->last_crouch_slide_frame <= 1.5 * HZ) {
+                    AngleVectors(ent->s.angles, forward, right, NULL);
 
-            VectorScale(forward, ucmd->forwardmove, forward);
-            VectorScale(right, ucmd->sidemove, right);
+                    VectorScale(forward, ucmd->forwardmove, forward);
+                    VectorScale(right, ucmd->sidemove, right);
 
-            VectorAdd(forward, right, slide_direction);
-            VectorNormalize(slide_direction);
+                    VectorAdd(forward, right, slide_direction);
+                    VectorNormalize(slide_direction);
 
-            VectorScale(ent->velocity, 1.25, ent->velocity);
-            VectorAdd(ent->velocity, slide_direction, slide_direction);
-            VectorNormalize(slide_direction);
+                    VectorAdd(ent->velocity, slide_direction, slide_direction);
+                    VectorNormalize(slide_direction);
 
-            VectorScale(slide_direction, speed_before_crouching, ent->velocity);
+                    VectorScale(slide_direction, speed_before_crouching, ent->velocity);
+                }
+            }
         }
 
         VectorCopy(pm.mins, ent->mins);
