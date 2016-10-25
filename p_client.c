@@ -1777,6 +1777,7 @@ static void G_TouchProjectiles(edict_t *ent, vec3_t start)
     }
 }
 
+#define CROUCH_SLIDING_SPEED_THRESHOLD 100
 #define CROUCH_SLIDING_TIME_MAX 4
 
 #define LerpSpeed(a,b,c,d) ((d)=(a)+(c)*((b)-(a)))
@@ -1864,9 +1865,15 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
         }
 
         if (pm.s.pm_type == PM_NORMAL) {
+            VectorClear(client->groundentity_velocity);
+
+            if (ent->groundentity) {
+                VectorCopy(ent->groundentity->velocity, client->groundentity_velocity);
+            }
+
             current_speed = VectorLength(ent->velocity);
 
-            if (pm.s.pm_flags & PMF_DUCKED) {
+            if (pm.s.pm_flags & PMF_DUCKED && current_speed > CROUCH_SLIDING_SPEED_THRESHOLD) {
                 sliding_frame_delta = level.framenum - client->last_crouch_sliding_begin_frame;
 
                 if (sliding_frame_delta > CROUCH_SLIDING_TIME_MAX * HZ + FRAMEDIV) {
@@ -1893,7 +1900,7 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
         if (pm.s.pm_type == PM_NORMAL) {
             current_speed = VectorLength(ent->velocity);
 
-            if (pm.s.pm_flags & PMF_DUCKED) {
+            if (pm.s.pm_flags & PMF_DUCKED && current_speed > CROUCH_SLIDING_SPEED_THRESHOLD) {
                 sliding_frame_delta = level.framenum - client->last_crouch_sliding_begin_frame;
 
                 if (sliding_frame_delta <= CROUCH_SLIDING_TIME_MAX * HZ) {
@@ -1931,6 +1938,7 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
         VectorCopy(pm.maxs, ent->maxs);
 
         if (ent->groundentity && !pm.groundentity && (pm.cmd.upmove >= 10) && (pm.waterlevel == 0)) {
+            VectorAdd(ent->velocity, client->groundentity_velocity, ent->velocity);
             gi.sound(ent, CHAN_VOICE, level.sounds.jump, 1, ATTN_NORM, 0);
         }
 

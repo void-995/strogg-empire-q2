@@ -1227,25 +1227,27 @@ void SP_func_clock(edict_t *self)
 
 //=================================================================================
 
-static void teleporter_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
+static void teleporter_touch_client(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
     edict_t     *dest;
 
     if (!other->client)
         return;
+
     dest = G_Find(NULL, FOFS(targetname), self->target);
+
     if (!dest) {
         gi.dprintf("Couldn't find destination\n");
         return;
     }
 
     // unlink to make sure it can't possibly interfere with G_KillBox
-    //gi.unlinkentity(other);
+    gi.unlinkentity(other);
 
     VectorCopy(dest->s.origin, other->s.origin);
     VectorCopy(dest->s.origin, other->s.old_origin);
     VectorCopy(dest->s.origin, other->old_origin);
-    other->s.origin[2] += 10;
+    other->s.origin[2] += 16;
 
     if ((int)g_teleporter_nofreeze->value == 0) {
         // clear the velocity and hold them in place briefly
@@ -1282,6 +1284,57 @@ static void teleporter_touch(edict_t *self, edict_t *other, cplane_t *plane, csu
     G_KillBox(other);
 }
 
+static void teleporter_touch_other(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
+{
+    vec_t       speed;
+    vec3_t      delta;
+    edict_t     *dest;
+
+    dest = G_Find(NULL, FOFS(targetname), self->target);
+    
+    if (!dest) {
+        gi.dprintf("Couldn't find destination\n");
+        return;
+    }
+
+    // unlink to make sure it can't possibly interfere with G_KillBox
+    gi.unlinkentity(other);
+
+    VectorSubtract(other->s.origin, self->s.origin, delta);
+
+    VectorCopy(dest->s.origin, other->s.origin);
+    VectorCopy(dest->s.origin, other->s.old_origin);
+    VectorCopy(dest->s.origin, other->old_origin);
+
+    VectorAdd(other->s.origin, delta, other->s.origin);
+    VectorAdd(other->s.origin, delta, other->s.old_origin);
+    VectorAdd(other->s.origin, delta, other->old_origin);
+
+    self->owner->s.event = EV_PLAYER_TELEPORT;
+    other->s.event = EV_PLAYER_TELEPORT;
+
+    speed = VectorLength(other->velocity);
+    AngleVectors(dest->s.angles, other->velocity, NULL, NULL);
+    VectorScale(other->velocity, speed, other->velocity);
+
+    VectorCopy(dest->s.angles, other->s.angles);
+
+    // we must link before killbox since it uses absmin/absmax
+    gi.linkentity(other);
+
+    // kill anything at the destination
+    G_KillBox(other);
+}
+
+static void teleporter_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
+{
+    if (other->client) {
+        teleporter_touch_client(self, other, plane, surf);
+    } else {
+        teleporter_touch_other(self, other, plane, surf);
+    }
+}
+
 /*QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16)
 Stepping onto this disc will teleport players to the targeted misc_teleporter_dest object.
 */
@@ -1311,8 +1364,8 @@ void SP_misc_teleporter(edict_t *ent)
     trig->target = ent->target;
     trig->owner = ent;
     VectorCopy(ent->s.origin, trig->s.origin);
-    VectorSet(trig->mins, -8, -8, 8);
-    VectorSet(trig->maxs, 8, 8, 24);
+    VectorSet(trig->mins, -32, -32, -16);
+    VectorSet(trig->maxs, 32, 32, 80);
     gi.linkentity(trig);
 
 }

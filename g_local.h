@@ -1217,6 +1217,8 @@ struct gclient_s {
 
     int         last_crouch_sliding_begin_frame;
     float       crouch_sliding_speed;
+
+    vec3_t      groundentity_velocity;
 };
 
 struct edict_s {
