@@ -1879,9 +1879,13 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
                 if (sliding_frame_delta > CROUCH_SLIDING_TIME_MAX * HZ + FRAMEDIV) {
                     client->crouch_sliding_speed = current_speed * 1.125;
                     client->last_crouch_sliding_begin_frame = level.framenum;
+
+                    pm.s.pm_flags |= PMF_NO_PREDICTION;
                 }
             } else {
                 client->last_crouch_sliding_begin_frame = CROUCH_SLIDING_TIME_MAX * -HZ;
+
+                pm.s.pm_flags &= ~PMF_NO_PREDICTION;
             }
         }
 
