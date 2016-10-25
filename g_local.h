@@ -1215,7 +1215,8 @@ struct gclient_s {
     int game_subframe_shots_count;
     game_subframe_shot_t game_subframe_shots[MAX_FRAMEDIV];
 
-    int         last_crouch_slide_frame;
+    int         last_crouch_sliding_begin_frame;
+    float       crouch_sliding_speed;
 };
 
 struct edict_s {

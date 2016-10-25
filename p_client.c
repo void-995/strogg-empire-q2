@@ -1246,7 +1246,7 @@ void PutClientInServer(edict_t *ent)
     ent->viewheight = 28;
     ent->inuse = qtrue;
     ent->classname = "player";
-    ent->mass = 90;
+    ent->mass = 88;
     ent->solid = SOLID_BBOX;
     ent->deadflag = DEAD_NO;
     ent->air_finished_framenum = level.framenum + 12 * HZ;
@@ -1777,6 +1777,10 @@ static void G_TouchProjectiles(edict_t *ent, vec3_t start)
     }
 }
 
+#define CROUCH_SLIDING_TIME_MAX 4
+
+#define LerpSpeed(a,b,c,d) ((d)=(a)+(c)*((b)-(a)))
+
 /*
 ==============
 ClientThink
@@ -1793,7 +1797,8 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
     pmove_t pm;
     vec3_t start;
 
-    float current_speed, speed_before_crouching;
+    int sliding_frame_delta;
+    float current_speed, forwardmove, sidemove, upmove, slide_scale;
     vec3_t forward, right, slide_direction;
 
     level.current_entity = ent;
@@ -1858,21 +1863,18 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
             }
         }
 
-        speed_before_crouching = 0;
-
         if (pm.s.pm_type == PM_NORMAL) {
             current_speed = VectorLength(ent->velocity);
 
             if (pm.s.pm_flags & PMF_DUCKED) {
-                if (current_speed > 300) {
-                    speed_before_crouching = current_speed;
+                sliding_frame_delta = level.framenum - client->last_crouch_sliding_begin_frame;
 
-                    if (level.framenum - client->last_crouch_slide_frame > 1.5 * HZ + FRAMEDIV) {
-                        client->last_crouch_slide_frame = level.framenum;
-                    }
+                if (sliding_frame_delta > CROUCH_SLIDING_TIME_MAX * HZ + FRAMEDIV) {
+                    client->crouch_sliding_speed = current_speed * 1.125;
+                    client->last_crouch_sliding_begin_frame = level.framenum;
                 }
             } else {
-                client->last_crouch_slide_frame = 0;
+                client->last_crouch_sliding_begin_frame = CROUCH_SLIDING_TIME_MAX * -HZ;
             }
         }
 
@@ -1889,20 +1891,38 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
         }
 
         if (pm.s.pm_type == PM_NORMAL) {
+            current_speed = VectorLength(ent->velocity);
+
             if (pm.s.pm_flags & PMF_DUCKED) {
-                if (level.framenum - client->last_crouch_slide_frame <= 1.5 * HZ) {
+                sliding_frame_delta = level.framenum - client->last_crouch_sliding_begin_frame;
+
+                if (sliding_frame_delta <= CROUCH_SLIDING_TIME_MAX * HZ) {
+                    slide_scale = powf(sliding_frame_delta / (float)(CROUCH_SLIDING_TIME_MAX * HZ), 2.f);
+                    LerpSpeed(client->crouch_sliding_speed, 100, slide_scale, client->crouch_sliding_speed);
+
                     AngleVectors(ent->s.angles, forward, right, NULL);
 
-                    VectorScale(forward, ucmd->forwardmove, forward);
-                    VectorScale(right, ucmd->sidemove, right);
+                    forwardmove = ucmd->forwardmove;
+                    sidemove = ucmd->sidemove;
+
+                    clamp(forwardmove, -300, 300);
+                    clamp(sidemove, -300, 300);
+
+                    upmove = ent->velocity[PLANE_Z];
+                    VectorNormalize(ent->velocity);
+
+                    VectorScale(forward, forwardmove, forward);
+                    VectorScale(right, sidemove, right);
 
                     VectorAdd(forward, right, slide_direction);
                     VectorNormalize(slide_direction);
-
+                    
+                    VectorScale(ent->velocity, 32.0, ent->velocity);
                     VectorAdd(ent->velocity, slide_direction, slide_direction);
                     VectorNormalize(slide_direction);
 
-                    VectorScale(slide_direction, speed_before_crouching, ent->velocity);
+                    VectorScale(slide_direction, client->crouch_sliding_speed, ent->velocity);
+                    ent->velocity[PLANE_Z] += upmove * 0.5;
                 }
             }
         }

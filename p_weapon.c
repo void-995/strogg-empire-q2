@@ -1187,6 +1187,10 @@ void Weapon_Railgun(edict_t *ent)
     static const int    fire_frames[]   = {4, 0};
 
     Weapon_Generic(ent, 3, 18, 56, 61, pause_frames, fire_frames, weapon_railgun_fire);
+
+    if (ent->client->weaponframe == 5) {
+        ent->client->weaponframe = 7;
+    }
 }
 
 #define PLASMABEAM_DAMAGE   4
